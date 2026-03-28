@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — All Sessions</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TymKeeper</div>
+      <div style="font-size:0.72rem;color:#475569;margin-top:3px;">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Built by app.js -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">AD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Admin</div>
+          <div class="role" id="sidebarUserRole">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">All Sessions</span>
+      <div class="topbar-right">
+        <button class="btn btn-outline btn-sm" onclick="exportData('pdf')"><i class="ri-file-pdf-line"></i> PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="exportData('excel')"><i class="ri-file-excel-line"></i> Excel</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>All Sessions</h1>
+        <p>View and manage every session across your entire team</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-6">
+        <div class="card-body" style="padding:16px 20px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+            <div>
+              <label class="form-label" style="font-size:0.78rem;">Date From</label>
+              <input type="date" class="form-control" id="filterFrom" style="width:160px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.78rem;">Date To</label>
+              <input type="date" class="form-control" id="filterTo" style="width:160px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.78rem;">Status</label>
+              <select class="form-control" id="filterStatus" style="width:150px;">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="currentPage=1;loadSessions()">
+              <i class="ri-search-line"></i> Filter
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearFilters()">
+              <i class="ri-refresh-line"></i> Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Sessions</h3>
+          <span id="sessionCount" style="font-size:0.82rem;color:var(--text-muted);">Loading...</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Work Hours</th>
+                <th>Break Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsBody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span id="paginationInfo" style="font-size:0.82rem;color:var(--text-muted);">—</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline btn-sm" id="prevPage" onclick="changePage(-1)"><i class="ri-arrow-left-s-line"></i> Prev</button>
+            <button class="btn btn-outline btn-sm" id="nextPage" onclick="changePage(1)">Next <i class="ri-arrow-right-s-line"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Review Session</h2>
+      <button class="modal-close" onclick="closeModal('reviewModal')"><i class="ri-close-line"></i></button>
+    </div>
+    <div id="reviewInfo" style="background:var(--bg);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:0.875rem;color:var(--text-secondary);"></div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <textarea class="form-control" id="reviewNote" rows="2" placeholder="Add a note for the employee..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('reviewModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="submitReview('rejected')"><i class="ri-close-circle-line"></i> Reject</button>
+      <button class="btn btn-success" onclick="submitReview('approved')"><i class="ri-checkbox-circle-line"></i> Approve</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAdmin();
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+let currentPage = 1, totalPages = 1, reviewId = null;
+
+const now = new Date();
+document.getElementById('filterFrom').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+document.getElementById('filterTo').value = now.toISOString().split('T')[0];
+
+async function loadSessions() {
+  const from = document.getElementById('filterFrom').value;
+  const to = document.getElementById('filterTo').value;
+  const status = document.getElementById('filterStatus').value;
+  const params = new URLSearchParams({ page: currentPage, limit: 15 });
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  if (status) params.append('status', status);
+
+  const data = await apiRequest(`/sessions/admin?${params}`);
+  if (!data) return;
+
+  totalPages = data.totalPages || 1;
+  document.getElementById('sessionCount').textContent = `${data.total || 0} sessions`;
+  document.getElementById('paginationInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+  document.getElementById('prevPage').disabled = currentPage <= 1;
+  document.getElementById('nextPage').disabled = currentPage >= totalPages;
+
+  const tbody = document.getElementById('sessionsBody');
+  if (!data.sessions?.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No sessions found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.sessions.map(s => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;">${(s.user?.firstName?.[0]||'')+(s.user?.lastName?.[0]||'').toUpperCase()}</div>
+          <span>${s.user?.firstName} ${s.user?.lastName}</span>
+        </div>
+      </td>
+      <td>${formatDate(s.start_time)}</td>
+      <td>${new Date(s.start_time).toLocaleTimeString('en-ZA',{timeStyle:'short'})}</td>
+      <td>${s.end_time ? new Date(s.end_time).toLocaleTimeString('en-ZA',{timeStyle:'short'}) : '<span class="badge badge-info">Live</span>'}</td>
+      <td><strong>${formatDuration(s.work_seconds)}</strong></td>
+      <td>${formatDuration(s.break_seconds)}</td>
+      <td><span class="badge ${s.status==='approved'?'badge-success':s.status==='pending'?'badge-warning':s.status==='active'?'badge-info':'badge-danger'}">${s.status}</span></td>
+      <td>
+        ${s.status==='pending'
+          ? `<button class="btn btn-primary btn-sm" onclick="openReview('${s.id}','${s.user?.firstName} ${s.user?.lastName}','${formatDate(s.start_time)}','${formatDuration(s.work_seconds)}')"><i class="ri-checkbox-circle-line"></i> Review</button>`
+          : '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function clearFilters() {
+  const now = new Date();
+  document.getElementById('filterFrom').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  document.getElementById('filterTo').value = now.toISOString().split('T')[0];
+  document.getElementById('filterStatus').value = '';
+  currentPage = 1;
+  loadSessions();
+}
+
+function changePage(dir) {
+  currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+  loadSessions();
+}
+
+function openReview(id, name, date, duration) {
+  reviewId = id;
+  document.getElementById('reviewInfo').innerHTML = `<strong>Employee:</strong> ${name} &nbsp;|&nbsp; <strong>Date:</strong> ${date} &nbsp;|&nbsp; <strong>Hours:</strong> ${duration}`;
+  document.getElementById('reviewNote').value = '';
+  openModal('reviewModal');
+}
+
+async function submitReview(action) {
+  const note = document.getElementById('reviewNote').value;
+  const data = await apiRequest(`/sessions/${reviewId}/review`, {
+    method: 'PUT', body: JSON.stringify({ status: action, note })
+  });
+  if (data?.ok) {
+    closeModal('reviewModal');
+    showToast(`Session ${action}`, action === 'approved' ? 'success' : 'warning');
+    loadSessions();
+  } else {
+    showToast(data?.message || 'Action failed', 'error');
+  }
+}
+
+function exportData(format) {
+  const from = document.getElementById('filterFrom').value;
+  const to   = document.getElementById('filterTo').value;
+  const ext  = format === 'pdf' ? 'pdf' : 'xlsx';
+  downloadExport(`${API_URL}/sessions/export?format=${format}&from=${from}&to=${to}&all=true`, `all_sessions_${from}_to_${to}.${ext}`);
+}
+
+loadSessions();
+</script>
+</body>
+</html>

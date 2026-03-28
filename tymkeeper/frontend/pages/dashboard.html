@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Dashboard</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TymKeeper</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-item active" href="dashboard.html">
+        <i class="ri-dashboard-line"></i> Dashboard
+      </a>
+      <a class="nav-item" href="sessions.html">
+        <i class="ri-timer-line"></i> My Sessions
+      </a>
+      <a class="nav-item" href="breaks.html">
+        <i class="ri-cup-line"></i> Breaks
+      </a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="history.html">
+        <i class="ri-history-line"></i> Session History
+      </a>
+      <a class="nav-item" href="reports.html">
+        <i class="ri-file-chart-line"></i> Export Reports
+      </a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" href="profile.html">
+        <i class="ri-user-line"></i> My Profile
+      </a>
+      <a class="nav-item" id="logoutBtn">
+        <i class="ri-logout-box-line"></i> Sign Out
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" onclick="window.location.href='profile.html'">
+        <div class="avatar" id="sidebarAvatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Loading...</div>
+          <div class="role" id="sidebarUserRole">Staff Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-right">
+        <button class="icon-btn" id="notifBtn">
+          <i class="ri-notification-3-line"></i>
+          <span class="notif-dot" id="notifDot" style="display:none"></span>
+        </button>
+        <div class="avatar" id="topbarAvatar" style="width:34px;height:34px;font-size:0.75rem;cursor:pointer" onclick="window.location.href='profile.html'">JD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1 id="greetingText">Good morning 👋</h1>
+        <p id="greetingDate">Loading...</p>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="ri-time-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statToday">0h 0m</div>
+            <div class="stat-label">Today's Hours</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="ri-calendar-check-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statWeek">0h</div>
+            <div class="stat-label">This Week</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="ri-cup-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statBreaks">0</div>
+            <div class="stat-label">Breaks Today</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="ri-checkbox-circle-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statSessions">0</div>
+            <div class="stat-label">Sessions This Month</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="gap:20px;margin-bottom:24px;">
+        <!-- Timer Card -->
+        <div>
+          <div class="timer-card" id="timerCard">
+            <div class="timer-label">Current Session</div>
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div class="timer-status">
+              <span class="dot" id="timerDot"></span>
+              <span id="timerStatusText">No active session</span>
+            </div>
+            <div class="timer-actions">
+              <button class="btn btn-success" id="startBtn" onclick="startSession()">
+                <i class="ri-play-fill"></i> Start Session
+              </button>
+              <button class="btn btn-warning" id="pauseBtn" style="display:none" onclick="pauseSession()">
+                <i class="ri-pause-fill"></i> Pause
+              </button>
+              <button class="btn btn-ghost" id="resumeBtn" style="display:none" onclick="resumeSession()">
+                <i class="ri-play-fill"></i> Resume
+              </button>
+              <button class="btn btn-danger" id="stopBtn" style="display:none" onclick="stopSession()">
+                <i class="ri-stop-fill"></i> End Session
+              </button>
+            </div>
+          </div>
+
+          <!-- Break Buttons -->
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header">
+              <h3>Take a Break</h3>
+              <span id="breakTimerDisplay" style="font-family:var(--font-brand);font-size:1.1rem;color:var(--primary);display:none">00:00</span>
+            </div>
+            <div class="card-body" style="padding:16px;">
+              <div class="break-grid">
+                <button class="break-btn" id="breakTea" onclick="toggleBreak('tea')">
+                  <i class="ri-cup-line"></i>
+                  <span>Tea Break</span>
+                  <span class="break-timer" id="timerTea">—</span>
+                </button>
+                <button class="break-btn" id="breakLunch" onclick="toggleBreak('lunch')">
+                  <i class="ri-restaurant-line"></i>
+                  <span>Lunch Break</span>
+                  <span class="break-timer" id="timerLunch">—</span>
+                </button>
+                <button class="break-btn" id="breakToilet" onclick="toggleBreak('toilet')">
+                  <i class="ri-drop-line"></i>
+                  <span>Toilet Break</span>
+                  <span class="break-timer" id="timerToilet">—</span>
+                </button>
+                <button class="break-btn" id="breakMeeting" onclick="toggleBreak('meeting')">
+                  <i class="ri-group-line"></i>
+                  <span>Meeting</span>
+                  <span class="break-timer" id="timerMeeting">—</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Recent Activity</h3>
+            <a href="history.html" style="font-size:0.82rem;color:var(--primary);">View all</a>
+          </div>
+          <div class="card-body" style="padding:0 24px 16px;">
+            <div class="timeline" id="activityTimeline">
+              <div style="text-align:center;padding:32px;color:var(--text-muted);font-size:0.875rem;">
+                <i class="ri-timer-line" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                No recent activity
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session History Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Today's Sessions</h3>
+          <a href="history.html" class="btn btn-outline btn-sm">
+            <i class="ri-history-line"></i> Full History
+          </a>
+        </div>
+        <div class="table-wrap">
+          <table id="todayTable">
+            <thead>
+              <tr>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Work Hours</th>
+                <th>Break Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="todayTableBody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No sessions today</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script src="../assets/js/app.js"></script>
+<script>
+// ─── Auth check ───
+const auth = requireAuth();
+if (!auth) throw new Error('Not authenticated');
+const { token, user } = auth;
+
+// ─── Greeting ───
+function setGreeting() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greetingText').textContent = `${g}, ${user.firstName} 👋`;
+  document.getElementById('greetingDate').textContent = new Date().toLocaleDateString('en-ZA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+setGreeting();
+
+// ─── Avatar ───
+const initials = (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
+document.getElementById('sidebarAvatar').textContent = initials.toUpperCase();
+document.getElementById('topbarAvatar').textContent = initials.toUpperCase();
+
+// ─── Logout ───
+document.getElementById('logoutBtn').onclick = logout;
+
+// ─── Timer State ───
+let sessionState = null; // null | 'running' | 'paused'
+let sessionId = null;
+let sessionStart = null;
+let elapsedSeconds = 0;
+let timerInterval = null;
+let breakState = null; // null | 'tea' | 'lunch' | 'toilet' | 'meeting'
+let breakStart = null;
+let breakIntervals = {};
+let breakTotals = { tea: 0, lunch: 0, toilet: 0, meeting: 0 };
+
+function tickTimer() {
+  if (sessionStart && sessionState === 'running') {
+    const now = Date.now();
+    const added = Math.floor((now - sessionStart) / 1000);
+    const total = elapsedSeconds + added;
+    document.getElementById('timerDisplay').textContent = formatTime(total);
+  }
+}
+
+function setTimerUI(state) {
+  sessionState = state;
+  const dot = document.getElementById('timerDot');
+  const statusText = document.getElementById('timerStatusText');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resumeBtn = document.getElementById('resumeBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  startBtn.style.display = 'none';
+  pauseBtn.style.display = 'none';
+  resumeBtn.style.display = 'none';
+  stopBtn.style.display = 'none';
+
+  if (state === 'running') {
+    dot.classList.add('running');
+    dot.classList.remove('paused');
+    statusText.textContent = 'Session in progress';
+    pauseBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'inline-flex';
+  } else if (state === 'paused') {
+    dot.classList.remove('running');
+    dot.classList.add('paused');
+    statusText.textContent = 'Session paused';
+    resumeBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'inline-flex';
+  } else {
+    dot.classList.remove('running', 'paused');
+    statusText.textContent = 'No active session';
+    document.getElementById('timerDisplay').textContent = '00:00:00';
+    startBtn.style.display = 'inline-flex';
+  }
+}
+
+// ─── Session Actions ───
+async function startSession() {
+  const data = await apiRequest('/sessions/start', { method: 'POST' });
+  if (data?.session) {
+    sessionId = data.session.id;
+    sessionStart = Date.now();
+    elapsedSeconds = 0;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(tickTimer, 1000);
+    setTimerUI('running');
+    showToast('Session started!', 'success');
+    loadStats();
+  } else {
+    showToast(data?.message || 'Failed to start session', 'error');
+  }
+}
+
+async function pauseSession() {
+  if (!sessionId) return;
+  const data = await apiRequest(`/sessions/${sessionId}/pause`, { method: 'PUT' });
+  if (data?.session) {
+    const now = Date.now();
+    elapsedSeconds += Math.floor((now - sessionStart) / 1000);
+    sessionStart = null;
+    clearInterval(timerInterval);
+    setTimerUI('paused');
+    showToast('Session paused', 'warning');
+  }
+}
+
+async function resumeSession() {
+  if (!sessionId) return;
+  const data = await apiRequest(`/sessions/${sessionId}/resume`, { method: 'PUT' });
+  if (data?.session) {
+    sessionStart = Date.now();
+    timerInterval = setInterval(tickTimer, 1000);
+    setTimerUI('running');
+    showToast('Session resumed', 'success');
+  }
+}
+
+async function stopSession() {
+  if (!sessionId) return;
+  if (!confirm('End this session?')) return;
+  const data = await apiRequest(`/sessions/${sessionId}/stop`, { method: 'PUT' });
+  if (data?.session) {
+    clearInterval(timerInterval);
+    elapsedSeconds = 0;
+    sessionId = null;
+    sessionStart = null;
+    clearAllBreaks();
+    setTimerUI(null);
+    showToast('Session ended and saved', 'success');
+    loadStats();
+    loadTodaySessions();
+  }
+}
+
+// ─── Break Actions ───
+function clearAllBreaks() {
+  Object.values(breakIntervals).forEach(clearInterval);
+  breakIntervals = {};
+  breakTotals = { tea: 0, lunch: 0, toilet: 0, meeting: 0 };
+  breakState = null;
+  ['tea', 'lunch', 'toilet', 'meeting'].forEach(t => {
+    document.getElementById(`timer${t.charAt(0).toUpperCase()+t.slice(1)}`).textContent = '—';
+    document.getElementById(`break${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.remove('active');
+  });
+  document.getElementById('breakTimerDisplay').style.display = 'none';
+}
+
+async function toggleBreak(type) {
+  if (!sessionId) {
+    showToast('Start a session first', 'warning');
+    return;
+  }
+  if (breakState === type) {
+    // End break
+    const data = await apiRequest(`/sessions/${sessionId}/break/end`, {
+      method: 'POST', body: JSON.stringify({ breakType: type })
+    });
+    if (data?.ok) {
+      clearInterval(breakIntervals[type]);
+      const elapsed = Math.floor((Date.now() - breakStart) / 1000);
+      breakTotals[type] += elapsed;
+      const capType = type.charAt(0).toUpperCase() + type.slice(1);
+      document.getElementById(`timer${capType}`).textContent = formatDuration(breakTotals[type]);
+      document.getElementById(`break${capType}`).classList.remove('active');
+      document.getElementById('breakTimerDisplay').style.display = 'none';
+      breakState = null;
+      breakStart = null;
+      // Resume main session
+      sessionStart = Date.now();
+      timerInterval = setInterval(tickTimer, 1000);
+      setTimerUI('running');
+      showToast(`${capType} break ended`, 'info');
+    }
+  } else {
+    if (breakState) {
+      showToast('End your current break first', 'warning');
+      return;
+    }
+    const data = await apiRequest(`/sessions/${sessionId}/break/start`, {
+      method: 'POST', body: JSON.stringify({ breakType: type })
+    });
+    if (data?.ok) {
+      // Pause main timer
+      if (sessionState === 'running') {
+        elapsedSeconds += Math.floor((Date.now() - sessionStart) / 1000);
+        sessionStart = null;
+        clearInterval(timerInterval);
+        setTimerUI('paused');
+      }
+      breakState = type;
+      breakStart = Date.now();
+      const capType = type.charAt(0).toUpperCase() + type.slice(1);
+      document.getElementById(`break${capType}`).classList.add('active');
+      const displayEl = document.getElementById('breakTimerDisplay');
+      displayEl.style.display = 'block';
+
+      breakIntervals[type] = setInterval(() => {
+        const s = Math.floor((Date.now() - breakStart) / 1000);
+        const m = Math.floor(s/60).toString().padStart(2,'0');
+        const sec = (s%60).toString().padStart(2,'0');
+        displayEl.textContent = `${m}:${sec}`;
+        document.getElementById(`timer${capType}`).textContent = formatDuration(breakTotals[type] + s);
+      }, 1000);
+      showToast(`${capType} break started`, 'info');
+    }
+  }
+}
+
+// ─── Load Data ───
+async function loadStats() {
+  const data = await apiRequest('/sessions/stats/me');
+  if (data) {
+    document.getElementById('statToday').textContent = formatDuration(data.todaySeconds || 0);
+    document.getElementById('statWeek').textContent = formatDuration(data.weekSeconds || 0);
+    document.getElementById('statBreaks').textContent = data.breaksToday || 0;
+    document.getElementById('statSessions').textContent = data.monthSessions || 0;
+  }
+}
+
+async function loadTodaySessions() {
+  const data = await apiRequest('/sessions/me?period=today');
+  if (!data?.sessions) return;
+  const tbody = document.getElementById('todayTableBody');
+  if (!data.sessions.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No sessions today</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.sessions.map(s => `
+    <tr>
+      <td>${formatDatetime(s.startTime)}</td>
+      <td>${s.endTime ? formatDatetime(s.endTime) : '<span class="badge badge-success"><i class="ri-record-circle-fill"></i> Live</span>'}</td>
+      <td>${formatDuration(s.workSeconds)}</td>
+      <td>${formatDuration(s.breakSeconds)}</td>
+      <td><span class="badge ${s.status === 'approved' ? 'badge-success' : s.status === 'pending' ? 'badge-warning' : s.status === 'active' ? 'badge-info' : 'badge-neutral'}">${s.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+async function loadActivity() {
+  const data = await apiRequest('/sessions/me?limit=8');
+  if (!data?.sessions) return;
+  const el = document.getElementById('activityTimeline');
+  if (!data.sessions.length) return;
+  el.innerHTML = data.sessions.map(s => `
+    <div class="timeline-item">
+      <div class="timeline-dot ${s.status === 'active' ? 'blue' : s.status === 'approved' ? 'green' : 'amber'}"></div>
+      <div class="timeline-content">
+        <div class="timeline-title">${s.status === 'active' ? 'Session in progress' : 'Session completed — ' + formatDuration(s.workSeconds)}</div>
+        <div class="timeline-time">${formatDatetime(s.startTime)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function checkActiveSession() {
+  const data = await apiRequest('/sessions/active');
+  if (data?.session) {
+    sessionId = data.session.id;
+    const serverElapsed = data.session.elapsedSeconds || 0;
+    elapsedSeconds = serverElapsed;
+    if (data.session.status === 'active') {
+      sessionStart = Date.now();
+      timerInterval = setInterval(tickTimer, 1000);
+      setTimerUI('running');
+    } else if (data.session.status === 'paused') {
+      setTimerUI('paused');
+      document.getElementById('timerDisplay').textContent = formatTime(elapsedSeconds);
+    }
+  }
+}
+
+// Init
+loadStats();
+loadTodaySessions();
+loadActivity();
+checkActiveSession();
+</script>
+</body>
+</html>

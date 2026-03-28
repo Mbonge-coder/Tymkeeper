@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Company Settings</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TymKeeper</div>
+      <div style="font-size:0.72rem;color:#475569;margin-top:3px;">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a class="nav-item" href="admin.html"><i class="ri-dashboard-line"></i> Dashboard</a>
+      <a class="nav-item" href="admin-staff.html"><i class="ri-team-line"></i> Staff Members</a>
+      <div class="nav-section-label">Sessions</div>
+      <a class="nav-item" href="admin-sessions.html"><i class="ri-timer-line"></i> All Sessions</a>
+      <a class="nav-item" href="admin-approvals.html"><i class="ri-checkbox-circle-line"></i> Approvals</a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="admin-reports.html"><i class="ri-file-chart-line"></i> Reports & Export</a>
+      <div class="nav-section-label">Settings</div>
+      <a class="nav-item active" href="admin-company.html"><i class="ri-building-line"></i> Company Settings</a>
+      <a class="nav-item" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">AD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Admin</div>
+          <div class="role" id="sidebarUserRole">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Company Settings</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Company Settings</h1>
+        <p>Manage your company workspace and Admin ID</p>
+      </div>
+
+      <div class="grid-2" style="gap:20px;align-items:start;">
+
+        <!-- Company Info -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="ri-building-line" style="color:var(--primary);margin-right:6px;"></i>Company Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input type="text" class="form-control" id="companyName" placeholder="Your company name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company ID</label>
+              <input type="text" class="form-control" id="companyId" disabled style="background:var(--bg);color:var(--text-muted);" />
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">This is auto-generated and cannot be changed.</div>
+            </div>
+            <button class="btn btn-primary" onclick="saveCompany()">
+              <i class="ri-save-line"></i> Save Changes
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin ID Share Box -->
+        <div>
+          <div class="card" style="border:2px solid var(--primary-100);background:linear-gradient(135deg,#EFF6FF,#DBEAFE);">
+            <div class="card-body" style="text-align:center;padding:32px;">
+              <div style="width:56px;height:56px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="ri-key-line" style="color:white;font-size:1.5rem;"></i>
+              </div>
+              <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;">Your Admin ID</div>
+              <div style="font-family:var(--font-brand);font-size:2.2rem;font-weight:700;color:var(--primary-dark);letter-spacing:0.05em;margin-bottom:8px;" id="adminIdBig">—</div>
+              <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:20px;">Share this ID with your staff so they can join your workspace when signing up.</div>
+              <button class="btn btn-primary" onclick="copyAdminId()" style="width:100%;justify-content:center;">
+                <i class="ri-file-copy-line"></i> Copy Admin ID
+              </button>
+            </div>
+          </div>
+
+          <!-- Admin Profile -->
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header">
+              <h3><i class="ri-user-settings-line" style="color:var(--primary);margin-right:6px;"></i>Admin Profile</h3>
+            </div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+                <div class="avatar lg" id="profileAvatar">AD</div>
+                <div>
+                  <div style="font-weight:600;" id="profileName">—</div>
+                  <div style="font-size:0.82rem;color:var(--text-muted);" id="profileEmail">—</div>
+                  <span class="badge badge-info" style="margin-top:4px;">Administrator</span>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label class="form-label">New Password</label>
+                <div class="input-group">
+                  <i class="ri-lock-line input-icon"></i>
+                  <input type="password" class="form-control" id="newPassword" placeholder="Leave blank to keep current" />
+                </div>
+              </div>
+              <button class="btn btn-outline" onclick="changePassword()">
+                <i class="ri-lock-password-line"></i> Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAdmin();
+document.getElementById('logoutBtn').onclick = logout;
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+const initials = ((user.firstName?.[0]||'')+(user.lastName?.[0]||'')).toUpperCase();
+document.getElementById('sidebarAvatar').textContent = initials;
+document.getElementById('profileAvatar').textContent = initials;
+document.getElementById('profileName').textContent = `${user.firstName} ${user.lastName}`;
+document.getElementById('profileEmail').textContent = user.email;
+
+async function loadCompany() {
+  const data = await apiRequest('/admin/company');
+  if (!data?.company) return;
+  document.getElementById('companyName').value = data.company.name;
+  document.getElementById('companyId').value = data.company.id;
+  document.getElementById('adminIdBig').textContent = data.company.admin_id;
+}
+
+async function saveCompany() {
+  const name = document.getElementById('companyName').value.trim();
+  if (!name) { showToast('Company name cannot be empty', 'warning'); return; }
+  const data = await apiRequest('/admin/company', {
+    method: 'PATCH', body: JSON.stringify({ name })
+  });
+  if (data?.company) {
+    showToast('Company name updated!', 'success');
+  } else {
+    showToast(data?.message || 'Failed to update', 'error');
+  }
+}
+
+function copyAdminId() {
+  const id = document.getElementById('adminIdBig').textContent;
+  navigator.clipboard.writeText(id).then(() => {
+    showToast(`Admin ID "${id}" copied to clipboard!`, 'success');
+  });
+}
+
+async function changePassword() {
+  const pwd = document.getElementById('newPassword').value;
+  if (!pwd || pwd.length < 8) {
+    showToast('Password must be at least 8 characters', 'warning');
+    return;
+  }
+  // This would call a profile update endpoint
+  showToast('Password update coming in next version', 'info');
+}
+
+loadCompany();
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Session History</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="brand">TymKeeper</div></div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Built by app.js -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Loading...</div>
+          <div class="role" id="sidebarUserRole">Staff Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Session History</span>
+      <div class="topbar-right">
+        <button class="btn btn-outline btn-sm" onclick="exportData('pdf')"><i class="ri-file-pdf-line"></i> PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="exportData('excel')"><i class="ri-file-excel-line"></i> Excel</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Session History</h1>
+        <p>Review and manage all your tracked work sessions</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-6">
+        <div class="card-body" style="padding:16px 20px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+            <div>
+              <label class="form-label" style="font-size:0.78rem;">Date From</label>
+              <input type="date" class="form-control" id="filterFrom" style="width:160px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.78rem;">Date To</label>
+              <input type="date" class="form-control" id="filterTo" style="width:160px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.78rem;">Status</label>
+              <select class="form-control" id="filterStatus" style="width:140px;">
+                <option value="">All Status</option>
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="loadSessions()">
+              <i class="ri-search-line"></i> Filter
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearFilters()">
+              <i class="ri-refresh-line"></i> Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>All Sessions</h3>
+          <span id="sessionCount" style="font-size:0.82rem;color:var(--text-muted);">Loading...</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Work Hours</th>
+                <th>Tea</th>
+                <th>Lunch</th>
+                <th>Toilet</th>
+                <th>Meeting</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted);">Loading sessions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span id="paginationInfo" style="font-size:0.82rem;color:var(--text-muted);">—</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline btn-sm" id="prevPage" onclick="changePage(-1)"><i class="ri-arrow-left-s-line"></i> Prev</button>
+            <button class="btn btn-outline btn-sm" id="nextPage" onclick="changePage(1)">Next <i class="ri-arrow-right-s-line"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="ri-delete-bin-line" style="color:var(--danger);margin-right:8px;"></i>Delete Session</h2>
+      <button class="modal-close" onclick="closeModal('deleteModal')"><i class="ri-close-line"></i></button>
+    </div>
+    <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:20px;">This action cannot be undone. Please provide a reason for deleting this session.</p>
+    <div class="form-group">
+      <label class="form-label">Reason for deletion <span style="color:var(--danger)">*</span></label>
+      <textarea class="form-control" id="deleteReason" rows="3" placeholder="e.g. Duplicate entry, test session..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()"><i class="ri-delete-bin-line"></i> Delete Session</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAuth();
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+const initials = (user.firstName?.[0]||'')+(user.lastName?.[0]||'');
+let currentPage = 1;
+let totalPages = 1;
+let deleteSessionId = null;
+
+// Set default date range (this month)
+const now = new Date();
+const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+const today = now.toISOString().split('T')[0];
+document.getElementById('filterFrom').value = firstDay;
+document.getElementById('filterTo').value = today;
+
+async function loadSessions() {
+  const from = document.getElementById('filterFrom').value;
+  const to = document.getElementById('filterTo').value;
+  const status = document.getElementById('filterStatus').value;
+  const params = new URLSearchParams({ page: currentPage, limit: 15 });
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  if (status) params.append('status', status);
+
+  const data = await apiRequest(`/sessions/me?${params}`);
+  if (!data) return;
+
+  const tbody = document.getElementById('historyTableBody');
+  totalPages = data.totalPages || 1;
+  document.getElementById('sessionCount').textContent = `${data.total || 0} sessions`;
+  document.getElementById('paginationInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+  document.getElementById('prevPage').disabled = currentPage <= 1;
+  document.getElementById('nextPage').disabled = currentPage >= totalPages;
+
+  if (!data.sessions?.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted);">No sessions found for the selected period</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.sessions.map(s => `
+    <tr>
+      <td>${formatDate(s.start_time)}</td>
+      <td>${new Date(s.start_time).toLocaleTimeString('en-ZA',{timeStyle:'short'})}</td>
+      <td>${s.end_time ? new Date(s.end_time).toLocaleTimeString('en-ZA',{timeStyle:'short'}) : '—'}</td>
+      <td><strong>${formatDuration(s.work_seconds)}</strong></td>
+      <td>${formatDuration((parseInt(s.breaks?.['tea']) || 0))}</td>
+      <td>${formatDuration((parseInt(s.breaks?.['lunch']) || 0))}</td>
+      <td>${formatDuration((parseInt(s.breaks?.['toilet']) || 0))}</td>
+      <td>${formatDuration((parseInt(s.breaks?.['meeting']) || 0))}</td>
+      <td><span class="badge ${s.status==='approved'?'badge-success':s.status==='pending'?'badge-warning':s.status==='active'?'badge-info':'badge-danger'}">${s.status}</span></td>
+      <td>
+        <button class="btn btn-sm" style="background:#FEF2F2;color:var(--danger);border:none;" onclick="deleteSession('${s.id}')">
+          <i class="ri-delete-bin-line"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function clearFilters() {
+  document.getElementById('filterFrom').value = firstDay;
+  document.getElementById('filterTo').value = today;
+  document.getElementById('filterStatus').value = '';
+  currentPage = 1;
+  loadSessions();
+}
+
+function changePage(dir) {
+  currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+  loadSessions();
+}
+
+function deleteSession(id) {
+  deleteSessionId = id;
+  document.getElementById('deleteReason').value = '';
+  openModal('deleteModal');
+}
+
+async function confirmDelete() {
+  const reason = document.getElementById('deleteReason').value.trim();
+  if (!reason) {
+    showToast('Please provide a reason', 'warning');
+    return;
+  }
+  const data = await apiRequest(`/sessions/${deleteSessionId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ reason })
+  });
+  if (data?.ok) {
+    closeModal('deleteModal');
+    showToast('Session deleted', 'success');
+    loadSessions();
+  } else {
+    showToast(data?.message || 'Failed to delete', 'error');
+  }
+}
+
+function exportData(format) {
+  const from = document.getElementById('filterFrom').value;
+  const to   = document.getElementById('filterTo').value;
+  const ext  = format === 'pdf' ? 'pdf' : 'xlsx';
+  const url  = `${API_URL}/sessions/export?format=${format}&from=${from}&to=${to}`;
+  downloadExport(url, `sessions_${from}_to_${to}.${ext}`);
+}
+
+loadSessions();
+</script>
+</body>
+</html>

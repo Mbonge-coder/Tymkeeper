@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Work Apps</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+  <style>
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .app-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px 16px 18px;
+      text-align: center;
+      transition: var(--transition);
+      cursor: pointer;
+      position: relative;
+      group: true;
+    }
+    .app-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+    .app-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+    }
+    .app-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .app-url {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .app-actions {
+      position: absolute;
+      top: 8px; right: 8px;
+      display: flex; gap: 4px;
+      opacity: 0;
+      transition: var(--transition);
+    }
+    .app-card:hover .app-actions { opacity: 1; }
+    .app-action-btn {
+      width: 26px; height: 26px;
+      border: none; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; cursor: pointer;
+      transition: var(--transition);
+    }
+    .app-action-btn.edit { background: var(--primary-100); color: var(--primary); }
+    .app-action-btn.del  { background: #FEE2E2; color: var(--danger); }
+    .shared-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: var(--primary-100); color: var(--primary);
+      font-size: 0.65rem; font-weight: 600; padding: 2px 7px;
+      border-radius: 99px; letter-spacing: 0.04em;
+    }
+    .add-app-card {
+      background: var(--bg);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px 16px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px; color: var(--text-muted);
+      min-height: 140px;
+    }
+    .add-app-card:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-50);
+    }
+    .category-header {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="brand">TymKeeper</div></div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Filled by JS based on role -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Loading...</div>
+          <div class="role" id="sidebarUserRole">Staff Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Work Apps</span>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openModal('addAppModal')">
+          <i class="ri-add-line"></i> Add App
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Work Apps & Links</h1>
+        <p>Quick access to all the tools and websites you use for work</p>
+      </div>
+
+      <!-- Search & Filter -->
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="input-group" style="flex:1;max-width:280px;">
+          <i class="ri-search-line input-icon"></i>
+          <input type="text" class="form-control" id="searchApps" placeholder="Search apps..." oninput="filterApps()" style="padding-left:40px;" />
+        </div>
+        <select class="form-control" id="filterCat" onchange="filterApps()" style="width:160px;">
+          <option value="">All Categories</option>
+          <option value="general">General</option>
+          <option value="communication">Communication</option>
+          <option value="productivity">Productivity</option>
+          <option value="design">Design</option>
+          <option value="development">Development</option>
+          <option value="finance">Finance</option>
+          <option value="hr">HR</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Apps container -->
+      <div id="appsContainer">
+        <div style="text-align:center;padding:60px;color:var(--text-muted);">
+          <i class="ri-loader-4-line" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+          Loading apps...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit App Modal -->
+<div class="modal-overlay" id="addAppModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 id="modalTitle"><i class="ri-links-line" style="color:var(--primary);margin-right:8px;"></i>Add Work App</h2>
+      <button class="modal-close" onclick="closeModal('addAppModal')"><i class="ri-close-line"></i></button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">App Name <span style="color:var(--danger)">*</span></label>
+      <input type="text" class="form-control" id="appName" placeholder="e.g. Google Drive, Slack, Jira" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL <span style="color:var(--danger)">*</span></label>
+      <div class="input-group">
+        <i class="ri-links-line input-icon"></i>
+        <input type="text" class="form-control" id="appUrl" placeholder="https://..." />
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-control" id="appCategory">
+          <option value="general">General</option>
+          <option value="communication">Communication</option>
+          <option value="productivity">Productivity</option>
+          <option value="design">Design</option>
+          <option value="development">Development</option>
+          <option value="finance">Finance</option>
+          <option value="hr">HR</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Icon Colour</label>
+        <input type="color" class="form-control" id="appColor" value="#2563EB" style="height:42px;padding:4px 8px;cursor:pointer;" />
+      </div>
+    </div>
+
+    <!-- Admin only: share toggle -->
+    <div id="shareRow" style="display:none;margin-bottom:16px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <div style="position:relative;width:44px;height:24px;">
+          <input type="checkbox" id="appShared" style="opacity:0;width:0;height:0;position:absolute;" onchange="updateToggle()" />
+          <div id="toggleTrack" style="position:absolute;inset:0;background:#CBD5E1;border-radius:99px;transition:0.2s;"></div>
+          <div id="toggleThumb" style="position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:3px;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+        </div>
+        <div>
+          <div style="font-size:0.875rem;font-weight:500;">Share with entire company</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">All staff will see this app</div>
+        </div>
+      </label>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-outline" onclick="closeModal('addAppModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveApp()">
+        <i class="ri-save-line"></i> <span id="saveLabel">Add App</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+const auth = requireAuth();
+if (!auth) throw new Error('Not auth');
+const { user } = auth;
+document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+const initials = ((user.firstName?.[0]||'')+(user.lastName?.[0]||'')).toUpperCase();
+document.getElementById('sidebarAvatar').textContent = initials;
+
+// Build sidebar based on role
+const nav = document.getElementById('sidebarNav');
+if (user.role === 'admin') {
+  nav.innerHTML = `
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-item" href="admin.html"><i class="ri-dashboard-line"></i> Dashboard</a>
+    <a class="nav-item" href="admin-staff.html"><i class="ri-team-line"></i> Staff Members</a>
+    <div class="nav-section-label">Sessions</div>
+    <a class="nav-item" href="admin-sessions.html"><i class="ri-timer-line"></i> All Sessions</a>
+    <a class="nav-item" href="admin-approvals.html"><i class="ri-checkbox-circle-line"></i> Approvals</a>
+    <div class="nav-section-label">Tools</div>
+    <a class="nav-item active" href="work-apps.html"><i class="ri-apps-line"></i> Work Apps</a>
+    <div class="nav-section-label">Reports</div>
+    <a class="nav-item" href="admin-reports.html"><i class="ri-file-chart-line"></i> Reports & Export</a>
+    <div class="nav-section-label">Settings</div>
+    <a class="nav-item" href="admin-company.html"><i class="ri-building-line"></i> Company Settings</a>
+    <a class="nav-item" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</a>`;
+  document.getElementById('shareRow').style.display = 'block';
+} else {
+  nav.innerHTML = `
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item" href="dashboard.html"><i class="ri-dashboard-line"></i> Dashboard</a>
+    <a class="nav-item" href="sessions.html"><i class="ri-timer-line"></i> My Sessions</a>
+    <a class="nav-item" href="breaks.html"><i class="ri-cup-line"></i> Breaks</a>
+    <div class="nav-section-label">Tools</div>
+    <a class="nav-item active" href="work-apps.html"><i class="ri-apps-line"></i> Work Apps</a>
+    <div class="nav-section-label">Reports</div>
+    <a class="nav-item" href="history.html"><i class="ri-history-line"></i> Session History</a>
+    <a class="nav-item" href="reports.html"><i class="ri-file-chart-line"></i> Export Reports</a>
+    <div class="nav-section-label">Account</div>
+    <a class="nav-item" href="notifications.html"><i class="ri-notification-3-line"></i> Notifications <span class="nav-badge" id="sidebarNotifBadge" style="display:none">0</span></a>
+    <a class="nav-item" href="profile.html"><i class="ri-user-line"></i> My Profile</a>
+    <a class="nav-item" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</a>`;
+}
+document.getElementById('logoutBtn').onclick = logout;
+
+let allApps = [];
+let editingId = null;
+
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch { return ''; }
+}
+
+function getInitial(name) {
+  return name?.charAt(0)?.toUpperCase() || '?';
+}
+
+function groupBy(arr, key) {
+  return arr.reduce((acc, item) => {
+    const g = item[key] || 'general';
+    if (!acc[g]) acc[g] = [];
+    acc[g].push(item);
+    return acc;
+  }, {});
+}
+
+function renderApps(apps) {
+  const container = document.getElementById('appsContainer');
+  if (!apps.length) {
+    container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);">
+      <i class="ri-apps-line" style="font-size:3rem;display:block;margin-bottom:12px;opacity:0.3;"></i>
+      <p style="font-size:0.9rem;">No apps yet. Click <strong>Add App</strong> to get started.</p>
+    </div>`;
+    return;
+  }
+
+  const shared = apps.filter(a => a.is_shared);
+  const mine = apps.filter(a => !a.is_shared);
+  let html = '';
+
+  if (shared.length) {
+    html += `<div class="category-header"><i class="ri-global-line"></i> Company Apps</div>`;
+    html += `<div class="apps-grid">`;
+    shared.forEach(a => html += renderAppCard(a));
+    html += `<div class="add-app-card" onclick="openAddModal()" title="Add new app">
+      <i class="ri-add-circle-line" style="font-size:1.8rem;"></i>
+      <span style="font-size:0.82rem;font-weight:500;">Add App</span>
+    </div></div>`;
+  }
+
+  const grouped = groupBy(mine, 'category');
+  const catLabels = { general:'General', communication:'Communication', productivity:'Productivity',
+    design:'Design', development:'Development', finance:'Finance', hr:'HR', other:'Other' };
+
+  Object.entries(grouped).forEach(([cat, catApps]) => {
+    html += `<div class="category-header">${catLabels[cat] || cat}</div>`;
+    html += `<div class="apps-grid">`;
+    catApps.forEach(a => html += renderAppCard(a));
+    html += `</div>`;
+  });
+
+  if (!shared.length) {
+    html += `<div class="apps-grid" style="margin-top:16px;">
+      <div class="add-app-card" onclick="openAddModal()">
+        <i class="ri-add-circle-line" style="font-size:1.8rem;"></i>
+        <span style="font-size:0.82rem;font-weight:500;">Add App</span>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderAppCard(a) {
+  const isOwn = a.user_id === user.id || user.role === 'admin';
+  const domain = getDomain(a.url);
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  return `
+    <div class="app-card" onclick="openApp('${a.url}')">
+      ${a.is_shared ? '<span class="shared-badge">COMPANY</span>' : ''}
+      ${isOwn ? `<div class="app-actions" onclick="event.stopPropagation()">
+        <button class="app-action-btn edit" onclick="openEditModal('${a.id}','${escHtml(a.name)}','${escHtml(a.url)}','${a.icon_color}','${a.category}',${a.is_shared})" title="Edit">
+          <i class="ri-pencil-line"></i>
+        </button>
+        <button class="app-action-btn del" onclick="deleteApp('${a.id}')" title="Delete">
+          <i class="ri-delete-bin-line"></i>
+        </button>
+      </div>` : ''}
+      <div class="app-icon" style="background:${a.icon_color};">
+        <img src="${faviconUrl}" width="28" height="28" style="border-radius:4px;"
+          onerror="this.style.display='none';this.nextSibling.style.display='block';" />
+        <span style="display:none;font-size:1.1rem;font-weight:700;">${getInitial(a.name)}</span>
+      </div>
+      <div class="app-name">${escHtml(a.name)}</div>
+      <div class="app-url">${domain || escHtml(a.url)}</div>
+    </div>`;
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openApp(url) {
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function filterApps() {
+  const q = document.getElementById('searchApps').value.toLowerCase();
+  const cat = document.getElementById('filterCat').value;
+  const filtered = allApps.filter(a =>
+    (!q || a.name.toLowerCase().includes(q) || (a.url || '').toLowerCase().includes(q)) &&
+    (!cat || a.category === cat)
+  );
+  renderApps(filtered);
+}
+
+function updateToggle() {
+  const checked = document.getElementById('appShared').checked;
+  document.getElementById('toggleTrack').style.background = checked ? 'var(--primary)' : '#CBD5E1';
+  document.getElementById('toggleThumb').style.left = checked ? '23px' : '3px';
+}
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').innerHTML = '<i class="ri-links-line" style="color:var(--primary);margin-right:8px;"></i>Add Work App';
+  document.getElementById('saveLabel').textContent = 'Add App';
+  document.getElementById('appName').value = '';
+  document.getElementById('appUrl').value = '';
+  document.getElementById('appCategory').value = 'general';
+  document.getElementById('appColor').value = '#2563EB';
+  document.getElementById('appShared').checked = false;
+  updateToggle();
+  openModal('addAppModal');
+}
+
+function openEditModal(id, name, url, color, category, shared) {
+  editingId = id;
+  document.getElementById('modalTitle').innerHTML = '<i class="ri-pencil-line" style="color:var(--primary);margin-right:8px;"></i>Edit App';
+  document.getElementById('saveLabel').textContent = 'Save Changes';
+  document.getElementById('appName').value = name;
+  document.getElementById('appUrl').value = url;
+  document.getElementById('appCategory').value = category;
+  document.getElementById('appColor').value = color;
+  document.getElementById('appShared').checked = shared;
+  updateToggle();
+  openModal('addAppModal');
+}
+
+async function saveApp() {
+  const name = document.getElementById('appName').value.trim();
+  const url = document.getElementById('appUrl').value.trim();
+  if (!name || !url) { showToast('Name and URL are required', 'warning'); return; }
+
+  const payload = {
+    name,
+    url,
+    iconColor: document.getElementById('appColor').value,
+    category: document.getElementById('appCategory').value,
+    isShared: document.getElementById('appShared').checked,
+  };
+
+  const endpoint = editingId ? `/apps/${editingId}` : '/apps';
+  const method = editingId ? 'PUT' : 'POST';
+  const data = await apiRequest(endpoint, { method, body: JSON.stringify(payload) });
+
+  if (data?.app || data?.ok) {
+    closeModal('addAppModal');
+    showToast(editingId ? 'App updated!' : 'App added!', 'success');
+    loadApps();
+  } else {
+    showToast(data?.message || 'Failed to save', 'error');
+  }
+}
+
+async function deleteApp(id) {
+  if (!confirm('Remove this app?')) return;
+  const data = await apiRequest(`/apps/${id}`, { method: 'DELETE' });
+  if (data?.ok) { showToast('App removed', 'success'); loadApps(); }
+  else showToast(data?.message || 'Failed', 'error');
+}
+
+async function loadApps() {
+  const data = await apiRequest('/apps');
+  if (!data) return;
+  allApps = data.apps || [];
+  filterApps();
+}
+
+loadApps();
+</script>
+</body>
+</html>

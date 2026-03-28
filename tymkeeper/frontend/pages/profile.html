@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — My Profile</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="brand">TymKeeper</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><i class="ri-dashboard-line"></i> Dashboard</a>
+      <a class="nav-item" href="sessions.html"><i class="ri-timer-line"></i> My Sessions</a>
+      <a class="nav-item" href="breaks.html"><i class="ri-cup-line"></i> Breaks</a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="history.html"><i class="ri-history-line"></i> Session History</a>
+      <a class="nav-item" href="reports.html"><i class="ri-file-chart-line"></i> Export Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item active" href="profile.html"><i class="ri-user-line"></i> My Profile</a>
+      <a class="nav-item" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Loading...</div>
+          <div class="role" id="sidebarUserRole">Staff Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">My Profile</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>My Profile</h1>
+        <p>View your account information and stats</p>
+      </div>
+
+      <div class="grid-2" style="gap:20px;align-items:start;">
+
+        <!-- Profile Card -->
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:36px 24px;">
+            <div class="avatar lg" id="profileAvatar" style="width:72px;height:72px;font-size:1.4rem;margin:0 auto 16px;">JD</div>
+            <div style="font-size:1.2rem;font-weight:700;" id="profileName">—</div>
+            <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px;" id="profileEmail">—</div>
+            <span class="badge badge-info">Staff Member</span>
+            <div class="divider" style="margin:20px 0;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
+              <div style="background:var(--bg);border-radius:var(--radius);padding:14px;">
+                <div style="font-size:1.3rem;font-weight:700;color:var(--primary);" id="profileSessions">—</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Total Sessions</div>
+              </div>
+              <div style="background:var(--bg);border-radius:var(--radius);padding:14px;">
+                <div style="font-size:1.3rem;font-weight:700;color:var(--primary);" id="profileHours">—</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Hours This Month</div>
+              </div>
+              <div style="background:var(--bg);border-radius:var(--radius);padding:14px;">
+                <div style="font-size:1.3rem;font-weight:700;color:var(--success);" id="profileToday">—</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Today</div>
+              </div>
+              <div style="background:var(--bg);border-radius:var(--radius);padding:14px;">
+                <div style="font-size:1.3rem;font-weight:700;color:var(--warning);" id="profileBreaks">—</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Breaks Today</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Info + Password Change -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Company -->
+          <div class="card">
+            <div class="card-header">
+              <h3><i class="ri-building-line" style="color:var(--primary);margin-right:6px;"></i>Company</h3>
+            </div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg);border-radius:var(--radius);">
+                  <span style="font-size:0.82rem;color:var(--text-muted);">Company Name</span>
+                  <span style="font-weight:500;font-size:0.875rem;" id="companyName">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg);border-radius:var(--radius);">
+                  <span style="font-size:0.82rem;color:var(--text-muted);">Your Role</span>
+                  <span class="badge badge-info">Staff Member</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg);border-radius:var(--radius);">
+                  <span style="font-size:0.82rem;color:var(--text-muted);">Member Since</span>
+                  <span style="font-weight:500;font-size:0.875rem;" id="memberSince">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Info -->
+          <div class="card">
+            <div class="card-header">
+              <h3><i class="ri-lock-line" style="color:var(--primary);margin-right:6px;"></i>Account</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="emailField" disabled style="background:var(--bg);color:var(--text-muted);" />
+              </div>
+              <div class="divider"></div>
+              <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <div class="input-group">
+                  <i class="ri-lock-line input-icon"></i>
+                  <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <div class="input-group">
+                  <i class="ri-lock-password-line input-icon"></i>
+                  <input type="password" class="form-control" id="newPassword" placeholder="Minimum 8 characters" />
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="changePassword()">
+                <i class="ri-save-line"></i> Update Password
+              </button>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="card" style="border-color:#FECACA;">
+            <div class="card-header" style="background:#FEF2F2;">
+              <h3 style="color:var(--danger);"><i class="ri-logout-box-line" style="margin-right:6px;"></i>Sign Out</h3>
+            </div>
+            <div class="card-body">
+              <p style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:16px;">You will be signed out of your TymKeeper account on this device.</p>
+              <button class="btn btn-danger" onclick="logout()">
+                <i class="ri-logout-box-line"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAuth();
+document.getElementById('logoutBtn').onclick = logout;
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+const initials = ((user.firstName?.[0]||'')+(user.lastName?.[0]||'')).toUpperCase();
+document.getElementById('sidebarAvatar').textContent = initials;
+document.getElementById('profileAvatar').textContent = initials;
+document.getElementById('profileName').textContent = `${user.firstName} ${user.lastName}`;
+document.getElementById('profileEmail').textContent = user.email;
+document.getElementById('emailField').value = user.email;
+
+async function loadProfile() {
+  const meData = await apiRequest('/auth/me');
+  if (meData) {
+    document.getElementById('companyName').textContent = meData.companyName || '—';
+  }
+  const stats = await apiRequest('/sessions/stats/me');
+  if (stats) {
+    document.getElementById('profileSessions').textContent = stats.monthSessions || 0;
+    document.getElementById('profileHours').textContent = formatDuration(stats.weekSeconds);
+    document.getElementById('profileToday').textContent = formatDuration(stats.todaySeconds);
+    document.getElementById('profileBreaks').textContent = stats.breaksToday || 0;
+  }
+  // Member since from token/user
+  document.getElementById('memberSince').textContent = new Date().toLocaleDateString('en-ZA', { dateStyle: 'medium' });
+}
+
+async function changePassword() {
+  const current = document.getElementById('currentPassword').value;
+  const newPwd = document.getElementById('newPassword').value;
+  if (!current || !newPwd) { showToast('Please fill in both password fields', 'warning'); return; }
+  if (newPwd.length < 8) { showToast('New password must be at least 8 characters', 'warning'); return; }
+  showToast('Password update coming in next version', 'info');
+}
+
+loadProfile();
+</script>
+</body>
+</html>

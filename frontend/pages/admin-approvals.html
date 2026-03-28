@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Approvals</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TymKeeper</div>
+      <div style="font-size:0.72rem;color:#475569;margin-top:3px;">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Built by app.js -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">AD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Admin</div>
+          <div class="role" id="sidebarUserRole">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Session Approvals</span>
+      <div class="topbar-right">
+        <button class="btn btn-success btn-sm" id="approveAllBtn" onclick="approveAll()" style="display:none">
+          <i class="ri-checkbox-circle-line"></i> Approve All
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Session Approvals</h1>
+        <p>Review and approve or reject completed staff sessions</p>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:4px;width:fit-content;">
+        <button class="tab-btn active" id="tabPending" onclick="switchTab('pending')">
+          Pending <span id="pendingCount" class="nav-badge" style="position:static;margin-left:6px;">0</span>
+        </button>
+        <button class="tab-btn" id="tabApproved" onclick="switchTab('approved')">Approved</button>
+        <button class="tab-btn" id="tabRejected" onclick="switchTab('rejected')">Rejected</button>
+      </div>
+
+      <style>
+        .tab-btn { padding:8px 18px;border:none;background:transparent;border-radius:8px;font-size:0.875rem;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all 0.2s;font-family:var(--font-body); }
+        .tab-btn.active { background:var(--primary);color:white; }
+        .tab-btn:hover:not(.active) { background:var(--bg); }
+      </style>
+
+      <!-- Cards Grid -->
+      <div id="approvalsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">
+        <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted);">
+          <i class="ri-loader-4-line" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+          Loading...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Review Session</h2>
+      <button class="modal-close" onclick="closeModal('reviewModal')"><i class="ri-close-line"></i></button>
+    </div>
+    <div id="reviewInfo" style="background:var(--bg);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.875rem;">
+        <div><span style="color:var(--text-muted);font-size:0.78rem;">Employee</span><br/><strong id="rName">—</strong></div>
+        <div><span style="color:var(--text-muted);font-size:0.78rem;">Date</span><br/><strong id="rDate">—</strong></div>
+        <div><span style="color:var(--text-muted);font-size:0.78rem;">Work Hours</span><br/><strong id="rWork">—</strong></div>
+        <div><span style="color:var(--text-muted);font-size:0.78rem;">Break Time</span><br/><strong id="rBreak">—</strong></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note for employee (optional)</label>
+      <textarea class="form-control" id="reviewNote" rows="2" placeholder="e.g. Approved — great work this week!"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('reviewModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="submitReview('rejected')"><i class="ri-close-circle-line"></i> Reject</button>
+      <button class="btn btn-success" onclick="submitReview('approved')"><i class="ri-checkbox-circle-line"></i> Approve</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAdmin();
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+let currentTab = 'pending';
+let reviewId = null;
+let pendingSessions = [];
+
+async function loadApprovals(status) {
+  const data = await apiRequest(`/sessions/admin?status=${status}&limit=50`);
+  const grid = document.getElementById('approvalsGrid');
+
+  if (!data?.sessions?.length) {
+    const msgs = { pending: 'No pending sessions — all caught up! ✅', approved: 'No approved sessions yet.', rejected: 'No rejected sessions.' };
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted);">
+      <i class="ri-checkbox-circle-line" style="font-size:2.5rem;display:block;margin-bottom:12px;color:var(--success);"></i>
+      ${msgs[status] || 'No sessions found.'}
+    </div>`;
+    return;
+  }
+
+  if (status === 'pending') {
+    pendingSessions = data.sessions;
+    document.getElementById('pendingCount').textContent = data.sessions.length;
+    document.getElementById('approveAllBtn').style.display = data.sessions.length ? 'inline-flex' : 'none';
+  }
+
+  grid.innerHTML = data.sessions.map(s => `
+    <div class="card" style="overflow:visible;">
+      <div class="card-body" style="padding:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div class="avatar">${(s.user?.firstName?.[0]||'')+(s.user?.lastName?.[0]||'').toUpperCase()}</div>
+          <div>
+            <div style="font-weight:600;">${s.user?.firstName} ${s.user?.lastName}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">${s.user?.email}</div>
+          </div>
+          <span class="badge ${s.status==='approved'?'badge-success':s.status==='pending'?'badge-warning':'badge-danger'}" style="margin-left:auto;">${s.status}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;">
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">DATE</div>
+            <div style="font-weight:600;font-size:0.875rem;">${formatDate(s.start_time)}</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;">
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">WORK HOURS</div>
+            <div style="font-weight:600;font-size:0.875rem;">${formatDuration(s.work_seconds)}</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;">
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">START → END</div>
+            <div style="font-weight:500;font-size:0.82rem;">${new Date(s.start_time).toLocaleTimeString('en-ZA',{timeStyle:'short'})} → ${s.end_time ? new Date(s.end_time).toLocaleTimeString('en-ZA',{timeStyle:'short'}) : '—'}</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;">
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">BREAK TIME</div>
+            <div style="font-weight:500;font-size:0.82rem;">${formatDuration(s.break_seconds)}</div>
+          </div>
+        </div>
+        ${s.review_note ? `<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px;font-size:0.82rem;color:#166534;margin-bottom:12px;"><i class="ri-chat-1-line"></i> ${s.review_note}</div>` : ''}
+        ${status === 'pending' ? `
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-danger btn-sm" style="flex:1" onclick="openReview('${s.id}','${s.user?.firstName} ${s.user?.lastName}','${formatDate(s.start_time)}','${formatDuration(s.work_seconds)}','${formatDuration(s.break_seconds)}')">
+            <i class="ri-close-circle-line"></i> Reject
+          </button>
+          <button class="btn btn-success btn-sm" style="flex:1" onclick="openReview('${s.id}','${s.user?.firstName} ${s.user?.lastName}','${formatDate(s.start_time)}','${formatDuration(s.work_seconds)}','${formatDuration(s.break_seconds)}')">
+            <i class="ri-checkbox-circle-line"></i> Approve
+          </button>
+        </div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  ['pending','approved','rejected'].forEach(t => {
+    document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('active', t === tab);
+  });
+  document.getElementById('approveAllBtn').style.display = tab === 'pending' ? 'inline-flex' : 'none';
+  loadApprovals(tab);
+}
+
+function openReview(id, name, date, work, brk) {
+  reviewId = id;
+  document.getElementById('rName').textContent = name;
+  document.getElementById('rDate').textContent = date;
+  document.getElementById('rWork').textContent = work;
+  document.getElementById('rBreak').textContent = brk;
+  document.getElementById('reviewNote').value = '';
+  openModal('reviewModal');
+}
+
+async function submitReview(action) {
+  const note = document.getElementById('reviewNote').value;
+  const data = await apiRequest(`/sessions/${reviewId}/review`, {
+    method: 'PUT', body: JSON.stringify({ status: action, note })
+  });
+  if (data?.ok) {
+    closeModal('reviewModal');
+    showToast(`Session ${action}`, action === 'approved' ? 'success' : 'warning');
+    loadApprovals(currentTab);
+  } else {
+    showToast(data?.message || 'Action failed', 'error');
+  }
+}
+
+async function approveAll() {
+  if (!pendingSessions.length) return;
+  if (!confirm(`Approve all ${pendingSessions.length} pending sessions?`)) return;
+  let count = 0;
+  for (const s of pendingSessions) {
+    const data = await apiRequest(`/sessions/${s.id}/review`, {
+      method: 'PUT', body: JSON.stringify({ status: 'approved', note: 'Bulk approved' })
+    });
+    if (data?.ok) count++;
+  }
+  showToast(`${count} sessions approved`, 'success');
+  loadApprovals('pending');
+}
+
+loadApprovals('pending');
+</script>
+</body>
+</html>

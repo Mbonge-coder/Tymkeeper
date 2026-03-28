@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Create Account</title>
+  <link rel="stylesheet" href="../assets/css/auth.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="auth-page">
+
+  <!-- Left Panel -->
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="brand-name">Tym<em>Keeper</em></div>
+      <div class="brand-tagline">Workforce Time Management</div>
+    </div>
+    <div class="auth-hero">
+      <h2>Start tracking<br /><span>smarter today.</span></h2>
+      <p>Join thousands of teams who trust TymKeeper for accurate time management and productivity insights.</p>
+      <div class="auth-features">
+        <div class="auth-feature"><i class="ri-building-line"></i> Create your company workspace</div>
+        <div class="auth-feature"><i class="ri-user-add-line"></i> Invite your staff instantly</div>
+        <div class="auth-feature"><i class="ri-pie-chart-line"></i> Get real-time analytics</div>
+        <div class="auth-feature"><i class="ri-export-line"></i> Export reports to PDF & Excel</div>
+      </div>
+    </div>
+    <div class="auth-bottom">&copy; 2025 TymKeeper. Built for modern teams.</div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <h1>Create account</h1>
+      <p class="subtitle">Get started with TymKeeper for free</p>
+
+      <div class="error-banner" id="errorBanner">
+        <i class="ri-error-warning-line"></i>
+        <span id="errorMsg">Something went wrong. Please try again.</span>
+      </div>
+
+      <form id="signupForm" novalidate>
+        <!-- Role selector -->
+        <div class="form-group">
+          <label class="form-label">I am signing up as</label>
+          <div class="role-selector">
+            <div class="role-option">
+              <input type="radio" name="role" id="roleAdmin" value="admin" checked />
+              <label class="role-label" for="roleAdmin">
+                <i class="ri-shield-user-line"></i>
+                <span>Admin / Owner</span>
+              </label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="role" id="roleStaff" value="staff" />
+              <label class="role-label" for="roleStaff">
+                <i class="ri-user-line"></i>
+                <span>Staff Member</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin ID field (staff only) -->
+        <div class="form-group" id="adminIdGroup" style="display:none">
+          <div class="admin-id-info">
+            <i class="ri-information-line"></i>
+            Ask your company administrator for their Admin ID to join their workspace.
+          </div>
+          <label class="form-label">Company Admin ID</label>
+          <div class="input-group">
+            <i class="ri-key-line input-icon"></i>
+            <input type="text" class="form-control" id="adminId" placeholder="e.g. ADM-XXXXXX" />
+          </div>
+          <div class="form-error">Admin ID is required to join a company.</div>
+        </div>
+
+        <!-- Company name (admin only) -->
+        <div class="form-group" id="companyGroup">
+          <label class="form-label">Company Name</label>
+          <div class="input-group">
+            <i class="ri-building-line input-icon"></i>
+            <input type="text" class="form-control" id="companyName" placeholder="Your Company Ltd." />
+          </div>
+          <div class="form-error">Company name is required.</div>
+        </div>
+
+        <!-- Name row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <div class="input-group">
+              <i class="ri-user-line input-icon"></i>
+              <input type="text" class="form-control" id="firstName" placeholder="John" />
+            </div>
+            <div class="form-error">Required.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="lastName" placeholder="Smith" />
+            <div class="form-error">Required.</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-group">
+            <i class="ri-mail-line input-icon"></i>
+            <input type="email" class="form-control" id="email" placeholder="you@company.com" />
+          </div>
+          <div class="form-error">Please enter a valid email.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-group">
+            <i class="ri-lock-line input-icon"></i>
+            <input type="password" class="form-control" id="password" placeholder="Minimum 8 characters" />
+            <button type="button" class="input-action" id="togglePwd">
+              <i class="ri-eye-off-line"></i>
+            </button>
+          </div>
+          <div class="form-error">Password must be at least 8 characters.</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span class="btn-text">Create Account</span>
+          <div class="spinner"></div>
+        </button>
+      </form>
+
+      <div class="auth-link">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = window.APP_CONFIG?.apiUrl || 'http://localhost:3001/api';
+
+// Role toggle
+document.querySelectorAll('input[name="role"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const isStaff = document.getElementById('roleStaff').checked;
+    document.getElementById('adminIdGroup').style.display = isStaff ? 'block' : 'none';
+    document.getElementById('companyGroup').style.display = isStaff ? 'none' : 'block';
+  });
+});
+
+// Toggle password visibility
+document.getElementById('togglePwd').addEventListener('click', function() {
+  const pwdField = document.getElementById('password');
+  const icon = this.querySelector('i');
+  pwdField.type = pwdField.type === 'password' ? 'text' : 'password';
+  icon.className = pwdField.type === 'password' ? 'ri-eye-off-line' : 'ri-eye-line';
+});
+
+// Form submission
+document.getElementById('signupForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const role = document.querySelector('input[name="role"]:checked').value;
+  const firstName = document.getElementById('firstName');
+  const lastName = document.getElementById('lastName');
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const companyName = document.getElementById('companyName');
+  const adminId = document.getElementById('adminId');
+  let valid = true;
+
+  [firstName, lastName, email, password, companyName, adminId].forEach(f => f.classList.remove('error'));
+  document.getElementById('errorBanner').classList.remove('show');
+
+  if (!firstName.value.trim()) { firstName.classList.add('error'); valid = false; }
+  if (!lastName.value.trim()) { lastName.classList.add('error'); valid = false; }
+  if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) { email.classList.add('error'); valid = false; }
+  if (!password.value || password.value.length < 8) { password.classList.add('error'); valid = false; }
+  if (role === 'admin' && !companyName.value.trim()) { companyName.classList.add('error'); valid = false; }
+  if (role === 'staff' && !adminId.value.trim()) { adminId.classList.add('error'); valid = false; }
+  if (!valid) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+
+  const payload = {
+    firstName: firstName.value.trim(),
+    lastName: lastName.value.trim(),
+    email: email.value.trim(),
+    password: password.value,
+    role,
+    ...(role === 'admin' ? { companyName: companyName.value.trim() } : { adminId: adminId.value.trim() })
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.token) {
+      localStorage.setItem('tk_token', data.token);
+      localStorage.setItem('tk_user', JSON.stringify(data.user));
+      window.location.href = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+    } else {
+      document.getElementById('errorMsg').textContent = data.message || 'Registration failed.';
+      document.getElementById('errorBanner').classList.add('show');
+    }
+  } catch (err) {
+    document.getElementById('errorMsg').textContent = 'Unable to connect to server.';
+    document.getElementById('errorBanner').classList.add('show');
+  } finally {
+    btn.classList.remove('loading');
+  }
+});
+</script>
+</body>
+</html>

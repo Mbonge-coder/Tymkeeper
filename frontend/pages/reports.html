@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Export Reports</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="brand">TymKeeper</div></div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Built by app.js -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Loading...</div>
+          <div class="role" id="sidebarUserRole">Staff Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Export Reports</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Export Reports</h1>
+        <p>Download your personal session reports as PDF or Excel</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-bottom:28px;">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="ri-time-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statToday">—</div>
+            <div class="stat-label">Today</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="ri-calendar-check-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statWeek">—</div>
+            <div class="stat-label">This Week</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="ri-bar-chart-2-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statMonth">—</div>
+            <div class="stat-label">This Month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="ri-checkbox-circle-line"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statSessions">—</div>
+            <div class="stat-label">Total Sessions</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="gap:20px;">
+        <!-- Custom Export -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="ri-download-line" style="color:var(--primary);margin-right:6px;"></i>Custom Export</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">From Date</label>
+              <input type="date" class="form-control" id="exportFrom" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">To Date</label>
+              <input type="date" class="form-control" id="exportTo" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+              <button class="btn btn-outline" onclick="doExport('excel')" style="justify-content:center;">
+                <i class="ri-file-excel-line" style="color:#10B981;"></i> Excel
+              </button>
+              <button class="btn btn-outline" onclick="doExport('pdf')" style="justify-content:center;">
+                <i class="ri-file-pdf-line" style="color:var(--danger);"></i> PDF
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Exports -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="ri-flashlight-line" style="color:var(--warning);margin-right:6px;"></i>Quick Exports</h3>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:14px 16px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-weight:500;font-size:0.875rem;">Today</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);" id="labelToday">—</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-outline" onclick="quickExport('today','excel')"><i class="ri-file-excel-line"></i></button>
+                <button class="btn btn-sm btn-outline" onclick="quickExport('today','pdf')"><i class="ri-file-pdf-line"></i></button>
+              </div>
+            </div>
+            <div style="padding:14px 16px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-weight:500;font-size:0.875rem;">This Week</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);">Monday to today</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-outline" onclick="quickExport('week','excel')"><i class="ri-file-excel-line"></i></button>
+                <button class="btn btn-sm btn-outline" onclick="quickExport('week','pdf')"><i class="ri-file-pdf-line"></i></button>
+              </div>
+            </div>
+            <div style="padding:14px 16px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-weight:500;font-size:0.875rem;">This Month</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);" id="labelMonth">—</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-outline" onclick="quickExport('month','excel')"><i class="ri-file-excel-line"></i></button>
+                <button class="btn btn-sm btn-outline" onclick="quickExport('month','pdf')"><i class="ri-file-pdf-line"></i></button>
+              </div>
+            </div>
+            <div style="padding:14px 16px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-weight:500;font-size:0.875rem;">Last Month</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);" id="labelLastMonth">—</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-outline" onclick="quickExport('lastmonth','excel')"><i class="ri-file-excel-line"></i></button>
+                <button class="btn btn-sm btn-outline" onclick="quickExport('lastmonth','pdf')"><i class="ri-file-pdf-line"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAuth();
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+const now = new Date();
+const today = now.toISOString().split('T')[0];
+const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().split('T')[0];
+const lastOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+const monday = new Date(now);
+monday.setDate(now.getDate() - ((now.getDay()+6)%7));
+const mondayStr = monday.toISOString().split('T')[0];
+
+document.getElementById('exportFrom').value = firstOfMonth;
+document.getElementById('exportTo').value = today;
+document.getElementById('labelToday').textContent = new Date().toLocaleDateString('en-ZA',{dateStyle:'medium'});
+document.getElementById('labelMonth').textContent = new Date(firstOfMonth).toLocaleDateString('en-ZA',{month:'long',year:'numeric'});
+document.getElementById('labelLastMonth').textContent = new Date(firstOfLastMonth).toLocaleDateString('en-ZA',{month:'long',year:'numeric'});
+
+async function loadStats() {
+  const data = await apiRequest('/sessions/stats/me');
+  if (data) {
+    document.getElementById('statToday').textContent = formatDuration(data.todaySeconds);
+    document.getElementById('statWeek').textContent = formatDuration(data.weekSeconds);
+    document.getElementById('statMonth').textContent = formatDuration(data.weekSeconds);
+    document.getElementById('statSessions').textContent = data.monthSessions;
+  }
+}
+
+function doExport(format) {
+  const from = document.getElementById('exportFrom').value;
+  const to   = document.getElementById('exportTo').value;
+  if (!from || !to) { showToast('Please select a date range', 'warning'); return; }
+  const ext  = format === 'pdf' ? 'pdf' : 'xlsx';
+  downloadExport(`${API_URL}/sessions/export?format=${format}&from=${from}&to=${to}`, `my_sessions_${from}_to_${to}.${ext}`);
+}
+  downloadExport(`${API_URL}/sessions/export?format=${format}&from=${from}&to=${to}`, `my_sessions_${from}_to_${to}.${format === 'pdf' ? 'pdf' : 'xlsx'}`);
+  showToast(`Generating ${format.toUpperCase()} report...`, 'info');
+}
+
+function quickExport(period, format) {
+  const now   = new Date();
+  const today = now.toISOString().split('T')[0];
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const firstOfLast  = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().split('T')[0];
+  const lastOfLast   = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+  const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay()+6)%7));
+  const mondayStr = mon.toISOString().split('T')[0];
+  let from, to = today;
+  if (period === 'today')     from = today;
+  else if (period === 'week') from = mondayStr;
+  else if (period === 'month') from = firstOfMonth;
+  else if (period === 'lastmonth') { from = firstOfLast; to = lastOfLast; }
+  const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+  downloadExport(`${API_URL}/sessions/export?format=${format}&from=${from}&to=${to}`, `my_sessions_${period}.${ext}`);
+}
+  downloadExport(`${API_URL}/sessions/export?format=${format}&from=${from}&to=${to}`, `my_sessions_${from}_to_${to}.${format === 'pdf' ? 'pdf' : 'xlsx'}`);
+  showToast(`Generating ${format.toUpperCase()} report...`, 'info');
+}
+
+loadStats();
+</script>
+</body>
+</html>

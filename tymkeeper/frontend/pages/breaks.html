@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Breaks</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="brand">TymKeeper</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-item" href="dashboard.html"><i class="ri-dashboard-line"></i> Dashboard</a>
+      <a class="nav-item" href="sessions.html"><i class="ri-timer-line"></i> My Sessions</a>
+      <a class="nav-item active" href="breaks.html"><i class="ri-cup-line"></i> Breaks</a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="history.html"><i class="ri-history-line"></i> Session History</a>
+      <a class="nav-item" href="reports.html"><i class="ri-file-chart-line"></i> Export Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" href="profile.html"><i class="ri-user-line"></i> My Profile</a>
+      <a class="nav-item" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Loading...</div>
+          <div class="role" id="sidebarUserRole">Staff Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Breaks</span>
+      <div class="topbar-right">
+        <div id="sessionStatus" style="font-size:0.82rem;color:var(--text-muted);padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+          <i class="ri-information-line"></i> No active session
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Break Management</h1>
+        <p>Track your breaks — each type has its own timer and is recorded separately</p>
+      </div>
+
+      <!-- No session warning -->
+      <div id="noSessionWarning" style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+        <i class="ri-alert-line" style="font-size:1.3rem;color:var(--warning);flex-shrink:0;"></i>
+        <div>
+          <div style="font-weight:600;color:#92400E;font-size:0.9rem;">No Active Session</div>
+          <div style="color:#B45309;font-size:0.82rem;">You need to start a session before taking a break. <a href="sessions.html" style="color:var(--primary);font-weight:500;">Start a session →</a></div>
+        </div>
+      </div>
+
+      <!-- Break Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:28px;">
+
+        <!-- Tea Break -->
+        <div class="card" id="cardTea">
+          <div class="card-body" style="text-align:center;padding:28px 24px;">
+            <div style="width:56px;height:56px;background:#FEF3C7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;">☕</div>
+            <div style="font-weight:600;font-size:1rem;margin-bottom:4px;">Tea Break</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Short refreshment break</div>
+            <div style="font-family:var(--font-brand);font-size:2.2rem;font-weight:700;color:var(--primary);margin-bottom:16px;" id="timerTea">00:00</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">Total today: <strong id="totalTea">0m</strong></div>
+            <button class="btn btn-primary" id="btnTea" style="width:100%;justify-content:center;" onclick="toggleBreak('tea')" disabled>
+              <i class="ri-play-fill"></i> Start Tea Break
+            </button>
+          </div>
+        </div>
+
+        <!-- Lunch Break -->
+        <div class="card" id="cardLunch">
+          <div class="card-body" style="text-align:center;padding:28px 24px;">
+            <div style="width:56px;height:56px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;">🍽️</div>
+            <div style="font-weight:600;font-size:1rem;margin-bottom:4px;">Lunch Break</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Meal break</div>
+            <div style="font-family:var(--font-brand);font-size:2.2rem;font-weight:700;color:var(--primary);margin-bottom:16px;" id="timerLunch">00:00</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">Total today: <strong id="totalLunch">0m</strong></div>
+            <button class="btn btn-primary" id="btnLunch" style="width:100%;justify-content:center;" onclick="toggleBreak('lunch')" disabled>
+              <i class="ri-play-fill"></i> Start Lunch Break
+            </button>
+          </div>
+        </div>
+
+        <!-- Toilet Break -->
+        <div class="card" id="cardToilet">
+          <div class="card-body" style="text-align:center;padding:28px 24px;">
+            <div style="width:56px;height:56px;background:#EDE9FE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;">🚻</div>
+            <div style="font-weight:600;font-size:1rem;margin-bottom:4px;">Toilet Break</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Restroom break</div>
+            <div style="font-family:var(--font-brand);font-size:2.2rem;font-weight:700;color:var(--primary);margin-bottom:16px;" id="timerToilet">00:00</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">Total today: <strong id="totalToilet">0m</strong></div>
+            <button class="btn btn-primary" id="btnToilet" style="width:100%;justify-content:center;" onclick="toggleBreak('toilet')" disabled>
+              <i class="ri-play-fill"></i> Start Toilet Break
+            </button>
+          </div>
+        </div>
+
+        <!-- Meeting -->
+        <div class="card" id="cardMeeting">
+          <div class="card-body" style="text-align:center;padding:28px 24px;">
+            <div style="width:56px;height:56px;background:#DBEAFE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;">👥</div>
+            <div style="font-weight:600;font-size:1rem;margin-bottom:4px;">Meeting</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">Away in a meeting</div>
+            <div style="font-family:var(--font-brand);font-size:2.2rem;font-weight:700;color:var(--primary);margin-bottom:16px;" id="timerMeeting">00:00</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">Total today: <strong id="totalMeeting">0m</strong></div>
+            <button class="btn btn-primary" id="btnMeeting" style="width:100%;justify-content:center;" onclick="toggleBreak('meeting')" disabled>
+              <i class="ri-play-fill"></i> Start Meeting
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's break summary -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Today's Break Summary</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Break Type</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="breakHistoryBody">
+              <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);">No breaks recorded today</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+const auth = requireAuth();
+if (!auth) throw new Error('Not auth');
+const { user } = auth;
+document.getElementById('logoutBtn').onclick = logout;
+document.getElementById('sidebarAvatar').textContent = ((user.firstName?.[0]||'')+(user.lastName?.[0]||'')).toUpperCase();
+
+let sessionId = null;
+let activeBreak = null;
+let breakStart = null;
+let breakIntervals = {};
+let breakTotals = { tea: 0, lunch: 0, toilet: 0, meeting: 0 };
+
+const breakLabels = { tea: 'Tea Break', lunch: 'Lunch Break', toilet: 'Toilet Break', meeting: 'Meeting' };
+const breakIcons = { tea: '☕', lunch: '🍽️', toilet: '🚻', meeting: '👥' };
+
+async function checkSession() {
+  const data = await apiRequest('/sessions/active');
+  if (data?.session) {
+    sessionId = data.session.id;
+    document.getElementById('noSessionWarning').style.display = 'none';
+    document.getElementById('sessionStatus').innerHTML = `<span style="color:var(--success);font-weight:500;"><i class="ri-record-circle-fill"></i> Session Active</span>`;
+    ['tea','lunch','toilet','meeting'].forEach(t => {
+      document.getElementById(`btn${t.charAt(0).toUpperCase()+t.slice(1)}`).disabled = false;
+    });
+    loadBreakHistory();
+  } else {
+    document.getElementById('noSessionWarning').style.display = 'flex';
+  }
+}
+
+async function toggleBreak(type) {
+  if (!sessionId) { showToast('Start a session first', 'warning'); return; }
+  const capType = type.charAt(0).toUpperCase() + type.slice(1);
+  const btn = document.getElementById(`btn${capType}`);
+  const timerEl = document.getElementById(`timer${capType}`);
+
+  if (activeBreak === type) {
+    // End break
+    const data = await apiRequest(`/sessions/${sessionId}/break/end`, {
+      method: 'POST', body: JSON.stringify({ breakType: type })
+    });
+    if (data?.ok) {
+      clearInterval(breakIntervals[type]);
+      const elapsed = Math.floor((Date.now() - breakStart) / 1000);
+      breakTotals[type] += elapsed;
+      document.getElementById(`total${capType}`).textContent = formatDuration(breakTotals[type]);
+      timerEl.textContent = '00:00';
+      btn.innerHTML = `<i class="ri-play-fill"></i> Start ${breakLabels[type]}`;
+      btn.className = 'btn btn-primary';
+      btn.style.width = '100%'; btn.style.justifyContent = 'center';
+      document.getElementById(`card${capType}`).style.border = '';
+      activeBreak = null; breakStart = null;
+      showToast(`${breakLabels[type]} ended — ${formatDuration(elapsed)}`, 'info');
+      loadBreakHistory();
+    }
+  } else {
+    if (activeBreak) { showToast('End your current break first', 'warning'); return; }
+    const data = await apiRequest(`/sessions/${sessionId}/break/start`, {
+      method: 'POST', body: JSON.stringify({ breakType: type })
+    });
+    if (data?.ok) {
+      activeBreak = type; breakStart = Date.now();
+      btn.innerHTML = `<i class="ri-stop-fill"></i> End ${breakLabels[type]}`;
+      btn.className = 'btn btn-danger';
+      btn.style.width = '100%'; btn.style.justifyContent = 'center';
+      document.getElementById(`card${capType}`).style.border = '2px solid var(--primary)';
+      breakIntervals[type] = setInterval(() => {
+        const s = Math.floor((Date.now() - breakStart) / 1000);
+        const m = Math.floor(s/60).toString().padStart(2,'0');
+        const sec = (s%60).toString().padStart(2,'0');
+        timerEl.textContent = `${m}:${sec}`;
+      }, 1000);
+      showToast(`${breakLabels[type]} started`, 'info');
+    }
+  }
+}
+
+async function loadBreakHistory() {
+  const data = await apiRequest('/sessions/me?period=today');
+  if (!data?.sessions?.length) return;
+  const sessionIds = data.sessions.map(s => s.id);
+  // Load breaks for today's sessions from stats
+  const tbody = document.getElementById('breakHistoryBody');
+  const breaks = [];
+  for (const s of data.sessions) {
+    if (s.breaks) {
+      ['tea','lunch','toilet','meeting'].forEach(t => {
+        if (s.breaks[t] > 0) {
+          breaks.push({ type: t, duration: s.breaks[t], date: s.start_time });
+          breakTotals[t] = s.breaks[t];
+          const capT = t.charAt(0).toUpperCase()+t.slice(1);
+          document.getElementById(`total${capT}`).textContent = formatDuration(s.breaks[t]);
+        }
+      });
+    }
+  }
+  if (!breaks.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted);">No breaks recorded today</td></tr>';
+    return;
+  }
+  tbody.innerHTML = breaks.map(b => `
+    <tr>
+      <td><span style="font-size:1rem;">${breakIcons[b.type]}</span> ${breakLabels[b.type]}</td>
+      <td>${formatDate(b.date)}</td>
+      <td>—</td>
+      <td><strong>${formatDuration(b.duration)}</strong></td>
+    </tr>
+  `).join('');
+}
+
+checkSession();
+</script>
+</body>
+</html>

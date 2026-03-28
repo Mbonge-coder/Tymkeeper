@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Staff Management</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+  <style>
+    .staff-card { background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;transition:var(--transition); }
+    .staff-card:hover { box-shadow:var(--shadow); }
+    .staff-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px; }
+    .info-row { display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.85rem; }
+    .info-row:last-child { border-bottom:none; }
+    .info-label { color:var(--text-muted);font-size:0.78rem; }
+    .info-value { font-weight:500;color:var(--text-primary); }
+    .stab { flex:1;padding:7px;border:none;border-radius:6px;font-size:0.82rem;cursor:pointer;font-family:var(--font-body);transition:all 0.2s; }
+    .stab.active { background:var(--primary);color:white; }
+    .stab:not(.active) { background:transparent;color:var(--text-secondary); }
+    .day-pill { padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:500;color:var(--text-secondary);transition:all 0.2s;user-select:none; }
+    .day-pill.on { background:var(--primary);border-color:var(--primary);color:white; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TymKeeper</div>
+      <div style="font-size:0.72rem;color:#475569;margin-top:3px;">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Built by app.js -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">AD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Admin</div>
+          <div class="role" id="sidebarUserRole">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Staff Members</span>
+      <div class="topbar-right">
+        <button class="btn btn-outline btn-sm" onclick="openModal('deptModal')">
+          <i class="ri-building-2-line"></i> Departments
+        </button>
+        <div style="background:var(--primary-50);border:1px solid var(--primary-100);border-radius:8px;padding:5px 12px;font-size:0.8rem;color:var(--primary);font-weight:500;">
+          <i class="ri-key-line"></i> Admin ID: <strong id="adminIdDisplay">—</strong>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Staff Members</h1>
+        <p>Manage profiles, departments, work schedules and account access</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="ri-team-line"></i></div>
+          <div class="stat-info"><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Staff</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="ri-record-circle-line"></i></div>
+          <div class="stat-info"><div class="stat-value" id="statOnline">—</div><div class="stat-label">Working Now</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="ri-user-follow-line"></i></div>
+          <div class="stat-info"><div class="stat-value" id="statEnabled">—</div><div class="stat-label">Active Accounts</div></div>
+        </div>
+      </div>
+
+      <!-- Search & Filter -->
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="input-group" style="flex:1;max-width:280px;">
+          <i class="ri-search-line input-icon"></i>
+          <input type="text" class="form-control" id="searchInput" placeholder="Search by name or email..." oninput="filterStaff()" style="padding-left:40px;" />
+        </div>
+        <select class="form-control" id="filterDept" onchange="filterStaff()" style="width:180px;">
+          <option value="">All Departments</option>
+        </select>
+      </div>
+
+      <!-- Staff Cards Grid -->
+      <div class="staff-grid" id="staffGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted);">
+          <i class="ri-loader-4-line" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Loading staff...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Staff Modal ─── -->
+<div class="modal-overlay" id="staffModal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <h2 id="staffModalTitle">Staff Details</h2>
+      <button class="modal-close" onclick="closeModal('staffModal')"><i class="ri-close-line"></i></button>
+    </div>
+
+    <!-- Tab bar -->
+    <div style="display:flex;gap:4px;background:var(--bg);border-radius:8px;padding:4px;margin-bottom:20px;">
+      <button class="stab active" id="stab1" onclick="switchTab(1)">👤 Profile</button>
+      <button class="stab" id="stab2" onclick="switchTab(2)">🕐 Schedule</button>
+      <button class="stab" id="stab3" onclick="switchTab(3)">🔐 Password</button>
+    </div>
+
+    <!-- TAB 1: Profile -->
+    <div id="tab1">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:var(--bg);border-radius:var(--radius);">
+        <div class="avatar lg" id="modalAvatar">JD</div>
+        <div>
+          <div style="font-weight:700;font-size:1rem;" id="modalName">—</div>
+          <div style="font-size:0.82rem;color:var(--text-muted);" id="modalEmail">—</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="ri-building-2-line"></i> Department</label>
+        <select class="form-control" id="editDept">
+          <option value="">— Not assigned —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="ri-briefcase-line"></i> Position / Job Title</label>
+        <div class="input-group">
+          <i class="ri-briefcase-line input-icon"></i>
+          <input type="text" class="form-control" id="editPosition" placeholder="e.g. Senior Developer, Sales Manager" />
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeModal('staffModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProfile()"><i class="ri-save-line"></i> Save Profile</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: Schedule -->
+    <div id="tab2" style="display:none;">
+      <div style="background:var(--primary-50);border:1px solid var(--primary-100);border-radius:var(--radius);padding:12px 14px;margin-bottom:18px;font-size:0.82rem;color:var(--primary-dark);">
+        <i class="ri-information-line"></i> TymKeeper will automatically flag late arrivals, early departures, and overtime based on this schedule. Staff will be prompted to provide a reason.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label"><i class="ri-login-circle-line"></i> Expected Clock-In</label>
+          <input type="time" class="form-control" id="scheduleIn" value="08:00" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label"><i class="ri-logout-circle-line"></i> Expected Clock-Out</label>
+          <input type="time" class="form-control" id="scheduleOut" value="17:00" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Working Days</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="dayPills">
+          <div class="day-pill on" data-day="1" onclick="toggleDay(this)">Mon</div>
+          <div class="day-pill on" data-day="2" onclick="toggleDay(this)">Tue</div>
+          <div class="day-pill on" data-day="3" onclick="toggleDay(this)">Wed</div>
+          <div class="day-pill on" data-day="4" onclick="toggleDay(this)">Thu</div>
+          <div class="day-pill on" data-day="5" onclick="toggleDay(this)">Fri</div>
+          <div class="day-pill" data-day="6" onclick="toggleDay(this)">Sat</div>
+          <div class="day-pill" data-day="7" onclick="toggleDay(this)">Sun</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeModal('staffModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSchedule()"><i class="ri-calendar-check-line"></i> Save Schedule</button>
+      </div>
+    </div>
+
+    <!-- TAB 3: Password Reset -->
+    <div id="tab3" style="display:none;">
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:14px;margin-bottom:20px;font-size:0.85rem;color:#991B1B;">
+        <i class="ri-shield-keyhole-line"></i> A temporary password will be generated. The staff member must change it on next login. They will receive a notification.
+      </div>
+      <div style="text-align:center;padding:16px 0 24px;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🔐</div>
+        <div style="font-weight:700;font-size:1rem;" id="resetName">—</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:24px;" id="resetEmail">—</div>
+        <button class="btn btn-danger" style="width:100%;justify-content:center;" onclick="doReset()">
+          <i class="ri-lock-password-line"></i> Generate Temporary Password
+        </button>
+      </div>
+      <!-- Result box -->
+      <div id="tempBox" style="display:none;background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius);padding:16px;">
+        <div style="font-size:0.75rem;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">⚡ Temporary Password</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <code style="flex:1;text-align:center;font-size:1.2rem;font-weight:700;color:#1D4ED8;background:#DBEAFE;padding:10px 16px;border-radius:8px;letter-spacing:0.1em;" id="tempPwd">—</code>
+          <button class="btn btn-sm btn-outline" onclick="navigator.clipboard.writeText(document.getElementById('tempPwd').textContent).then(()=>showToast('Copied!','success'))">
+            <i class="ri-file-copy-line"></i> Copy
+          </button>
+        </div>
+        <p style="font-size:0.78rem;color:#B45309;margin-top:10px;"><i class="ri-time-line"></i> Expires in 24 hours — share this with the staff member securely.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Departments Modal ─── -->
+<div class="modal-overlay" id="deptModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h2><i class="ri-building-2-line" style="color:var(--primary);margin-right:8px;"></i>Departments</h2>
+      <button class="modal-close" onclick="closeModal('deptModal')"><i class="ri-close-line"></i></button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <input type="text" class="form-control" id="newDeptName" placeholder="Department name..." onkeydown="if(event.key==='Enter')addDept()" />
+      <button class="btn btn-primary" onclick="addDept()"><i class="ri-add-line"></i></button>
+    </div>
+    <div id="deptList" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAdmin();
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+document.getElementById('adminIdDisplay').textContent = user.adminId || '—';
+
+let allStaff = [], departments = [];
+let currentStaffId = null, activeTab = 1;
+
+// ─── Init ───
+async function init() {
+  await loadDepts();
+  await loadStaff();
+}
+
+// ─── Departments ───
+async function loadDepts() {
+  const data = await apiRequest('/staff/departments');
+  departments = data?.departments || [];
+  renderDeptList();
+
+  // Fill filter dropdown
+  const fd = document.getElementById('filterDept');
+  fd.innerHTML = '<option value="">All Departments</option>' + departments.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+
+  // Fill edit dropdown
+  const ed = document.getElementById('editDept');
+  ed.innerHTML = '<option value="">— Not assigned —</option>' + departments.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+}
+
+function renderDeptList() {
+  const el = document.getElementById('deptList');
+  if (!departments.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;font-size:0.85rem;">No departments yet. Add one above.</p>';
+    return;
+  }
+  el.innerHTML = departments.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <i class="ri-building-2-line" style="color:var(--primary);"></i>
+        <span style="font-size:0.875rem;font-weight:500;">${d.name}</span>
+      </div>
+      <button class="btn btn-sm" style="background:#FEE2E2;color:var(--danger);border:none;padding:5px 10px;" onclick="deleteDept('${d.id}','${d.name}')">
+        <i class="ri-delete-bin-line"></i>
+      </button>
+    </div>`).join('');
+}
+
+async function addDept() {
+  const name = document.getElementById('newDeptName').value.trim();
+  if (!name) return;
+  const data = await apiRequest('/staff/departments', { method: 'POST', body: JSON.stringify({ name }) });
+  if (data?.department) {
+    document.getElementById('newDeptName').value = '';
+    showToast(`"${name}" added`, 'success');
+    await loadDepts();
+  } else showToast(data?.message || 'Failed', 'error');
+}
+
+async function deleteDept(id, name) {
+  if (!confirm(`Delete department "${name}"?`)) return;
+  await apiRequest(`/staff/departments/${id}`, { method: 'DELETE' });
+  showToast('Deleted', 'success');
+  await loadDepts();
+}
+
+// ─── Staff ───
+async function loadStaff() {
+  const [staffData, liveData] = await Promise.all([
+    apiRequest('/admin/staff'),
+    apiRequest('/admin/live')
+  ]);
+  allStaff = staffData?.staff || [];
+  const liveIds = new Set((liveData?.staff || []).map(s => s.id));
+
+  document.getElementById('statTotal').textContent = allStaff.length;
+  document.getElementById('statOnline').textContent = liveIds.size;
+  document.getElementById('statEnabled').textContent = allStaff.filter(s => s.is_active).length;
+
+  filterStaff();
+}
+
+function filterStaff() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const dept = document.getElementById('filterDept').value;
+  const filtered = allStaff.filter(s =>
+    (!q || `${s.first_name} ${s.last_name} ${s.email}`.toLowerCase().includes(q)) &&
+    (!dept || s.department === dept)
+  );
+  renderStaff(filtered);
+}
+
+function renderStaff(staff) {
+  const grid = document.getElementById('staffGrid');
+  if (!staff.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted);">
+      <i class="ri-team-line" style="font-size:3rem;display:block;margin-bottom:12px;opacity:0.3;"></i>
+      <p>No staff yet. Share your Admin ID <strong>${user.adminId}</strong> so staff can register.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = staff.map(s => `
+    <div class="staff-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div class="avatar" style="width:44px;height:44px;font-size:0.9rem;">${(s.first_name?.[0]||'')+(s.last_name?.[0]||'').toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;">${s.first_name} ${s.last_name}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.email}</div>
+        </div>
+        <span class="badge ${s.is_active ? 'badge-success' : 'badge-danger'}" style="flex-shrink:0;">${s.is_active ? 'Active' : 'Disabled'}</span>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="info-row">
+          <span class="info-label"><i class="ri-building-2-line"></i> Department</span>
+          <span class="info-value">${s.department || '<em style="color:var(--text-muted);font-style:normal;">Not set</em>'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="ri-briefcase-line"></i> Position</span>
+          <span class="info-value">${s.position || '<em style="color:var(--text-muted);font-style:normal;">Not set</em>'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="ri-timer-line"></i> Sessions / Hours</span>
+          <span class="info-value">${s.total_sessions || 0} &nbsp;·&nbsp; ${formatDuration(s.total_seconds)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="ri-circle-fill" style="font-size:0.5rem;color:${s.active_since ? 'var(--success)' : '#CBD5E1'};"></i> Now</span>
+          <span class="info-value" style="color:${s.active_since ? 'var(--success)' : 'var(--text-muted)'};">${s.active_since ? 'Working' : 'Offline'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" style="flex:1;" onclick="openModal_Staff('${s.id}','${s.first_name}','${s.last_name}','${s.email}','${s.department||''}','${s.position||''}',1)">
+          <i class="ri-edit-line"></i> Profile
+        </button>
+        <button class="btn btn-sm" style="flex:1;background:var(--primary-100);color:var(--primary);border:none;" onclick="openModal_Staff('${s.id}','${s.first_name}','${s.last_name}','${s.email}','${s.department||''}','${s.position||''}',2)">
+          <i class="ri-calendar-line"></i> Schedule
+        </button>
+        <button class="btn btn-sm" style="background:#FEE2E2;color:var(--danger);border:none;" onclick="openModal_Staff('${s.id}','${s.first_name}','${s.last_name}','${s.email}','${s.department||''}','${s.position||''}',3)" title="Reset Password">
+          <i class="ri-lock-password-line"></i>
+        </button>
+        <button class="btn btn-sm ${s.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleStatus('${s.id}',${s.is_active})" title="${s.is_active ? 'Disable' : 'Enable'} account">
+          <i class="ri-${s.is_active ? 'user-unfollow' : 'user-follow'}-line"></i>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── Modal ───
+function switchTab(t) {
+  activeTab = t;
+  [1,2,3].forEach(n => {
+    document.getElementById(`tab${n}`).style.display = n === t ? 'block' : 'none';
+    document.getElementById(`stab${n}`).className = `stab${n === t ? ' active' : ''}`;
+  });
+}
+
+async function openModal_Staff(id, fn, ln, email, dept, pos, tab) {
+  currentStaffId = id;
+  document.getElementById('staffModalTitle').textContent = `${fn} ${ln}`;
+  document.getElementById('modalAvatar').textContent = (fn[0]||'')+(ln[0]||'');
+  document.getElementById('modalName').textContent = `${fn} ${ln}`;
+  document.getElementById('modalEmail').textContent = email;
+  document.getElementById('editDept').value = dept;
+  document.getElementById('editPosition').value = pos;
+  document.getElementById('resetName').textContent = `${fn} ${ln}`;
+  document.getElementById('resetEmail').textContent = email;
+  document.getElementById('tempBox').style.display = 'none';
+
+  // Load existing schedule
+  const schData = await apiRequest(`/staff/${id}/schedule`);
+  const sch = schData?.schedule;
+  document.getElementById('scheduleIn').value = sch?.clock_in_time?.slice(0,5) || '08:00';
+  document.getElementById('scheduleOut').value = sch?.clock_out_time?.slice(0,5) || '17:00';
+  const activeDays = sch?.days_of_week || [1,2,3,4,5];
+  document.querySelectorAll('.day-pill').forEach(pill => {
+    const d = parseInt(pill.dataset.day);
+    pill.classList.toggle('on', activeDays.includes(d));
+  });
+
+  switchTab(tab);
+  openModal('staffModal');
+}
+
+function toggleDay(el) {
+  el.classList.toggle('on');
+}
+
+async function saveProfile() {
+  const data = await apiRequest(`/staff/${currentStaffId}/profile`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      department: document.getElementById('editDept').value || null,
+      position: document.getElementById('editPosition').value.trim() || null
+    })
+  });
+  if (data?.ok) {
+    showToast('Profile updated!', 'success');
+    closeModal('staffModal');
+    loadStaff();
+  } else showToast(data?.message || 'Failed to save', 'error');
+}
+
+async function saveSchedule() {
+  const days = [...document.querySelectorAll('.day-pill.on')].map(p => parseInt(p.dataset.day));
+  if (!days.length) { showToast('Select at least one working day', 'warning'); return; }
+  const data = await apiRequest(`/staff/${currentStaffId}/schedule`, {
+    method: 'POST',
+    body: JSON.stringify({
+      clockInTime: document.getElementById('scheduleIn').value,
+      clockOutTime: document.getElementById('scheduleOut').value,
+      daysOfWeek: days
+    })
+  });
+  if (data?.ok) {
+    showToast('Schedule saved — staff member notified!', 'success');
+    closeModal('staffModal');
+  } else showToast(data?.message || 'Failed', 'error');
+}
+
+async function doReset() {
+  if (!confirm('Generate a temporary password for this staff member?')) return;
+  const data = await apiRequest(`/staff/${currentStaffId}/reset-password`, { method: 'POST' });
+  if (data?.ok) {
+    document.getElementById('tempPwd').textContent = data.tempPassword;
+    document.getElementById('tempBox').style.display = 'block';
+    showToast('Temporary password generated!', 'success');
+  } else showToast(data?.message || 'Failed', 'error');
+}
+
+async function toggleStatus(id, active) {
+  if (!confirm(`${active ? 'Disable' : 'Enable'} this account?`)) return;
+  const data = await apiRequest(`/admin/staff/${id}/toggle`, { method: 'PATCH' });
+  if (data?.ok) {
+    showToast(`Account ${active ? 'disabled' : 'enabled'}`, active ? 'warning' : 'success');
+    loadStaff();
+  } else showToast(data?.message || 'Failed', 'error');
+}
+
+init();
+</script>
+</body>
+</html>
