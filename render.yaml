@@ -1,0 +1,19 @@
+# render.yaml — TymKeeper deployment config
+# Place this file at the ROOT of your GitHub repository
+
+services:
+  - type: web
+    name: tymkeeper-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      # Set these in Render Dashboard → Environment tab:
+      # DATABASE_URL  (your PostgreSQL connection string)
+      # JWT_SECRET    (long random string)
+      # FRONTEND_URL  (your deployed frontend URL)

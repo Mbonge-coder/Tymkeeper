@@ -1,13 +1,14 @@
 {
   "name": "tymkeeper-backend",
   "version": "1.0.0",
-  "description": "TymKeeper — Time Tracking Backend API",
+  "description": "TymKeeper \u2014 Time Tracking Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "db:migrate": "node database/migrate.js",
-    "db:seed": "node database/seed.js"
+    "db:seed": "node database/seed.js",
+    "build": "npm install"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -26,5 +27,9 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
