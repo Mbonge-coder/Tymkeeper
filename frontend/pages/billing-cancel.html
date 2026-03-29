@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Payment Cancelled</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+  <style>
+    :root { --primary:#2563EB; --font-brand:'Fredoka',sans-serif; --font-body:'Sora',sans-serif; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg,#0A0F1E,#1A0A0A);
+      min-height:100vh; display:flex; align-items:center; justify-content:center; color:white;
+    }
+    .box {
+      text-align:center; padding:56px 48px;
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+      border-radius:28px; max-width:460px; width:90%;
+    }
+    .icon-circle {
+      width:80px; height:80px; background:rgba(239,68,68,0.12);
+      border:2px solid rgba(239,68,68,0.3); border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 24px; font-size:2rem; color:#EF4444;
+    }
+    .brand { font-family:var(--font-brand); font-size:1.4rem; color:#3B82F6; margin-bottom:24px; }
+    h1 { font-size:1.8rem; font-weight:700; margin-bottom:12px; }
+    p  { font-size:0.95rem; color:#94A3B8; line-height:1.6; margin-bottom:32px; }
+    .btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:12px 24px; border-radius:12px;
+      font-size:0.9rem; font-weight:600; font-family:var(--font-body);
+      border:none; cursor:pointer; transition:all 0.2s; text-decoration:none;
+    }
+    .btn-primary { background:var(--primary); color:white; box-shadow:0 4px 16px rgba(37,99,235,0.4); }
+    .btn-primary:hover { background:#3B82F6; transform:translateY(-1px); }
+    .btn-ghost { background:rgba(255,255,255,0.06); color:#94A3B8; border:1px solid rgba(255,255,255,0.1); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.1); color:white; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="brand">TymKeeper</div>
+  <div class="icon-circle"><i class="ri-close-circle-fill"></i></div>
+  <h1>Payment Cancelled</h1>
+  <p>No charge was made. You can try again whenever you're ready — your current plan is still active.</p>
+  <div class="btns">
+    <a href="billing.html" class="btn btn-primary">
+      <i class="ri-price-tag-3-line"></i> View Plans
+    </a>
+    <a href="admin.html" class="btn btn-ghost">
+      <i class="ri-arrow-left-line"></i> Back to Dashboard
+    </a>
+  </div>
+</div>
+</body>
+</html>

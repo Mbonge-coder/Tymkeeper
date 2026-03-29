@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Billing & Subscription</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+  <style>
+    .plan-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 32px; }
+    .plan-card {
+      background: var(--bg-card); border: 2px solid var(--border);
+      border-radius: var(--radius-xl); padding: 28px 24px;
+      transition: var(--transition); position: relative;
+      display: flex; flex-direction: column;
+    }
+    .plan-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow); }
+    .plan-card.current { border-color: var(--primary); background: var(--primary-50); }
+    .plan-card.recommended { border-color: #7C3AED; }
+    .plan-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      padding: 4px 16px; border-radius: 99px;
+      font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+    }
+    .plan-badge.current-badge { background: var(--primary); color: white; }
+    .plan-badge.popular-badge { background: #7C3AED; color: white; }
+    .plan-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .plan-price {
+      font-size: 2.4rem; font-weight: 800; line-height: 1; color: var(--primary);
+      margin: 16px 0 4px; letter-spacing: -0.03em;
+    }
+    .plan-price small { font-size: 1rem; font-weight: 500; color: var(--text-muted); }
+    .plan-cycle { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
+    .plan-limit {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 99px; padding: 4px 12px;
+      font-size: 0.78rem; font-weight: 500; margin-bottom: 16px;
+    }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 20px; }
+    .plan-features li { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    .plan-features li i { font-size: 0.9rem; }
+    .plan-features li i.yes { color: var(--success); }
+    .plan-features li i.no  { color: #CBD5E1; }
+    .plan-features li.dim { color: var(--text-muted); }
+    .billing-toggle {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+      padding: 12px 16px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border);
+    }
+    .toggle-switch {
+      position: relative; width: 44px; height: 24px;
+      background: #CBD5E1; border-radius: 99px; cursor: pointer; transition: 0.2s;
+    }
+    .toggle-switch.on { background: var(--primary); }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .toggle-switch.on::after { left: 23px; }
+    .save-tag {
+      background: #D1FAE5; color: #065F46;
+      font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 99px; letter-spacing: 0.04em;
+    }
+    .current-plan-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px;
+      display: flex; align-items: center; gap: 20px; margin-bottom: 28px;
+    }
+    .plan-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    .payment-table { width: 100%; border-collapse: collapse; }
+    .payment-table th {
+      font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-muted);
+      padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .payment-table td { padding: 14px 16px; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
+    .payment-table tr:last-child td { border-bottom: none; }
+
+    /* PayFast form hidden */
+    #pfForm { display: none; }
+
+    @media (max-width: 900px) {
+      .plan-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto 32px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">TymKeeper</div>
+      <div style="font-size:0.72rem;color:#475569;margin-top:3px;">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar" id="sidebarAvatar">AD</div>
+        <div class="user-info">
+          <div class="name" id="sidebarUserName">Admin</div>
+          <div class="role" id="sidebarUserRole">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuToggle"><i class="ri-menu-line"></i></button>
+      <span class="topbar-title">Billing & Subscription</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Billing & Subscription</h1>
+        <p>Manage your plan, upgrade or view payment history</p>
+      </div>
+
+      <!-- Current Plan Summary -->
+      <div class="current-plan-box" id="currentPlanBox">
+        <div class="plan-icon" style="background:var(--primary-100);">
+          <i class="ri-vip-crown-line" style="color:var(--primary);"></i>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:1.05rem;" id="currentPlanName">Loading...</div>
+          <div style="font-size:0.82rem;color:var(--text-muted);margin-top:2px;" id="currentPlanDetail">—</div>
+        </div>
+        <div id="currentPlanAction"></div>
+      </div>
+
+      <!-- Billing cycle toggle -->
+      <div class="billing-toggle">
+        <span style="font-size:0.875rem;font-weight:500;" id="labelMonthly">Monthly</span>
+        <div class="toggle-switch" id="cycleToggle" onclick="toggleCycle()"></div>
+        <span style="font-size:0.875rem;font-weight:500;" id="labelAnnual">Annual</span>
+        <span class="save-tag">Save 30%</span>
+        <span style="font-size:0.78rem;color:var(--text-muted);margin-left:4px;">on annual billing</span>
+      </div>
+
+      <!-- Plans Grid -->
+      <div class="plan-grid" id="plansGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
+          <i class="ri-loader-4-line" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Loading plans...
+        </div>
+      </div>
+
+      <!-- Payment History -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="ri-receipt-line" style="color:var(--primary);margin-right:6px;"></i>Payment History</h3>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="payment-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Plan</th>
+                <th>Billing</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="paymentHistoryBody">
+              <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">No payment history yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Hidden PayFast form — submitted programmatically -->
+<form id="pfForm" method="POST" action="">
+</form>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <h2><i class="ri-alert-line" style="color:var(--warning);margin-right:8px;"></i>Cancel Subscription</h2>
+      <button class="modal-close" onclick="closeModal('cancelModal')"><i class="ri-close-line"></i></button>
+    </div>
+    <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:16px;">
+      Your subscription will be cancelled. You'll keep your current plan features until the end of your billing period.
+    </p>
+    <div id="cancelDetail" style="background:var(--bg);border-radius:var(--radius);padding:14px;margin-bottom:20px;font-size:0.85rem;color:var(--text-secondary);"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeModal('cancelModal')">Keep My Plan</button>
+      <button class="btn btn-danger" onclick="confirmCancel()"><i class="ri-close-circle-line"></i> Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/app.js"></script>
+<script>
+requireAdmin();
+const user = JSON.parse(localStorage.getItem('tk_user') || '{}');
+
+let isAnnual = false;
+let currentSub = null;
+let allPlans = [];
+
+const PLAN_ICONS = {
+  free:   { icon:'ri-gift-line',       bg:'#EFF6FF', color:'var(--primary)' },
+  growth: { icon:'ri-rocket-line',     bg:'#EDE9FE', color:'#7C3AED' },
+  scale:  { icon:'ri-vip-crown-2-line',bg:'#FEF3C7', color:'#D97706' },
+};
+
+const FEATURE_LABELS = {
+  excel_export:      'Excel Export',
+  work_schedules:    'Work Schedules',
+  departments:       'Departments & Positions',
+  priority_support:  'Priority Support',
+  custom_branding:   'Custom Branding',
+  multi_company:     'Multi-Company Management',
+};
+
+function toggleCycle() {
+  isAnnual = !isAnnual;
+  document.getElementById('cycleToggle').classList.toggle('on', isAnnual);
+  document.getElementById('labelMonthly').style.fontWeight = isAnnual ? '400' : '700';
+  document.getElementById('labelAnnual').style.fontWeight  = isAnnual ? '700' : '400';
+  renderPlans();
+}
+
+async function loadSubscription() {
+  const data = await apiRequest('/billing/subscription');
+  if (!data?.subscription) return;
+  currentSub = data.subscription;
+
+  const ic = PLAN_ICONS[currentSub.plan_id] || PLAN_ICONS.free;
+  document.getElementById('currentPlanBox').querySelector('.plan-icon').style.background = ic.bg;
+  document.getElementById('currentPlanBox').querySelector('.plan-icon').innerHTML = `<i class="${ic.icon}" style="color:${ic.color};"></i>`;
+  document.getElementById('currentPlanName').textContent = `${currentSub.plan_name} Plan`;
+
+  const staffLimit = currentSub.max_staff === -1 ? 'Unlimited staff' : `Up to ${currentSub.max_staff} staff`;
+  const periodEnd  = currentSub.current_period_end ? new Date(currentSub.current_period_end).toLocaleDateString('en-ZA',{dateStyle:'long'}) : '—';
+  document.getElementById('currentPlanDetail').textContent =
+    `${staffLimit} · Status: ${currentSub.status} · Renews: ${periodEnd}`;
+
+  const actionEl = document.getElementById('currentPlanAction');
+  if (currentSub.plan_id !== 'free' && currentSub.status === 'active') {
+    actionEl.innerHTML = `<button class="btn btn-danger btn-sm" onclick="openCancelModal()">
+      <i class="ri-close-circle-line"></i> Cancel Plan
+    </button>`;
+  }
+}
+
+async function loadPlans() {
+  const data = await apiRequest('/billing/plans');
+  if (!data?.plans) return;
+  allPlans = data.plans;
+  renderPlans();
+}
+
+function renderPlans() {
+  const grid = document.getElementById('plansGrid');
+  if (!allPlans.length) return;
+
+  grid.innerHTML = allPlans.map(plan => {
+    const isCurrent = currentSub?.plan_id === plan.id;
+    const price = isAnnual ? plan.price_annual : plan.price_monthly;
+    const isRecommended = plan.id === 'growth';
+    const ic = PLAN_ICONS[plan.id] || PLAN_ICONS.free;
+    const staffLabel = plan.max_staff === -1 ? 'Unlimited staff' : `Up to ${plan.max_staff} staff`;
+    const features = plan.features || {};
+
+    const featureList = Object.entries(FEATURE_LABELS).map(([key, label]) => {
+      const has = features[key] !== false;
+      return `<li class="${has?'':'dim'}">
+        <i class="ri-${has?'checkbox-circle-fill yes':'close-circle-fill no'}"></i>
+        ${label}
+      </li>`;
+    }).join('');
+
+    let btnHtml = '';
+    if (plan.id === 'free') {
+      btnHtml = isCurrent
+        ? `<button class="btn btn-outline" disabled style="opacity:0.5;cursor:not-allowed;">Current Plan</button>`
+        : `<button class="btn btn-outline" onclick="downgradeFree()">Downgrade to Free</button>`;
+    } else if (isCurrent) {
+      btnHtml = `<button class="btn btn-outline" disabled style="opacity:0.5;cursor:not-allowed;"><i class="ri-checkbox-circle-fill" style="color:var(--success);"></i> Active Plan</button>`;
+    } else {
+      const label = (currentSub?.plan_id === 'free' || !currentSub) ? 'Upgrade Now' : 'Switch Plan';
+      btnHtml = `<button class="btn btn-primary" onclick="startCheckout('${plan.id}')">
+        <i class="ri-arrow-right-line"></i> ${label}
+      </button>`;
+    }
+
+    const annualNote = isAnnual && plan.id !== 'free'
+      ? `<div style="font-size:0.75rem;color:var(--success);margin-top:4px;">
+           R${(plan.price_annual).toLocaleString('en-ZA')} billed annually
+         </div>`
+      : '';
+
+    return `
+      <div class="plan-card${isCurrent?' current':''}${isRecommended&&!isCurrent?' recommended':''}">
+        ${isCurrent ? '<div class="plan-badge current-badge">✓ Current Plan</div>' : ''}
+        ${isRecommended && !isCurrent ? '<div class="plan-badge popular-badge">⭐ Most Popular</div>' : ''}
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:${ic.bg};display:flex;align-items:center;justify-content:center;">
+            <i class="${ic.icon}" style="color:${ic.color};font-size:1.1rem;"></i>
+          </div>
+          <div class="plan-name">${plan.name}</div>
+        </div>
+        <div class="plan-price">
+          ${price > 0 ? `R${price.toLocaleString('en-ZA')}` : 'Free'}
+          ${price > 0 ? `<small>/${isAnnual?'yr':'mo'}</small>` : ''}
+        </div>
+        ${annualNote}
+        <div class="plan-cycle">${price === 0 ? 'Always free' : `Billed ${isAnnual?'annually':'monthly'}`}</div>
+        <div class="plan-limit">
+          <i class="ri-team-line" style="color:var(--primary);"></i> ${staffLabel}
+        </div>
+        <ul class="plan-features">${featureList}</ul>
+        <div>${btnHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+async function startCheckout(planId) {
+  showToast('Preparing checkout...', 'info');
+  const cycle = isAnnual ? 'annual' : 'monthly';
+  const data = await apiRequest('/billing/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ planId, billingCycle: cycle })
+  });
+
+  if (!data?.paymentData) {
+    showToast(data?.message || 'Failed to create checkout', 'error');
+    return;
+  }
+
+  // Build and submit the PayFast form
+  const form = document.getElementById('pfForm');
+  form.action = data.payfastUrl;
+  form.innerHTML = '';
+  Object.entries(data.paymentData).forEach(([key, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  showToast('Redirecting to PayFast...', 'success');
+  setTimeout(() => form.submit(), 800);
+}
+
+function downgradeFree() {
+  openCancelModal();
+}
+
+function openCancelModal() {
+  const periodEnd = currentSub?.current_period_end
+    ? new Date(currentSub.current_period_end).toLocaleDateString('en-ZA',{dateStyle:'long'})
+    : 'end of billing period';
+  document.getElementById('cancelDetail').innerHTML = `
+    <strong>Plan:</strong> ${currentSub?.plan_name || '—'}<br/>
+    <strong>Access until:</strong> ${periodEnd}<br/>
+    <strong>After cancellation:</strong> Downgraded to Free (5 staff, basic features)`;
+  openModal('cancelModal');
+}
+
+async function confirmCancel() {
+  const data = await apiRequest('/billing/cancel', { method: 'POST' });
+  if (data?.ok) {
+    closeModal('cancelModal');
+    showToast(data.message || 'Subscription cancelled', 'warning');
+    setTimeout(() => { loadSubscription(); loadPlans(); }, 1000);
+  } else {
+    showToast(data?.message || 'Failed to cancel', 'error');
+  }
+}
+
+async function loadPaymentHistory() {
+  const data = await apiRequest('/billing/history');
+  const tbody = document.getElementById('paymentHistoryBody');
+  if (!data?.payments?.length) return;
+
+  tbody.innerHTML = data.payments.map(p => {
+    const statusClass = p.status === 'complete' ? 'badge-success' : p.status === 'pending' ? 'badge-warning' : 'badge-danger';
+    return `<tr>
+      <td>${new Date(p.created_at).toLocaleDateString('en-ZA',{dateStyle:'medium'})}</td>
+      <td>${p.plan_name || p.plan_id || '—'}</td>
+      <td style="text-transform:capitalize;">${p.billing_cycle || '—'}</td>
+      <td><strong>R${parseFloat(p.amount).toLocaleString('en-ZA',{minimumFractionDigits:2})}</strong></td>
+      <td><span class="badge ${statusClass}">${p.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// Init
+loadSubscription();
+loadPlans();
+loadPaymentHistory();
+</script>
+</body>
+</html>

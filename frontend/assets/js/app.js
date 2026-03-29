@@ -146,6 +146,7 @@ function buildSidebar() {
       ${li('admin-reports.html',   'ri-file-chart-line',      'Reports & Export')}
 
       <div class="nav-section-label">Settings</div>
+      ${li('billing.html',         'ri-bank-card-line',       'Billing & Plans')}
       ${li('admin-company.html',   'ri-building-line',        'Company Settings')}
       <a class="nav-item" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</a>
     `;

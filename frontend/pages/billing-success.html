@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TymKeeper — Payment Successful</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css" />
+  <style>
+    :root { --primary:#2563EB; --success:#10B981; --font-brand:'Fredoka',sans-serif; --font-body:'Sora',sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #0A0F1E 0%, #0F172A 50%, #0A1628 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+    }
+    .box {
+      text-align: center;
+      padding: 56px 48px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 28px;
+      max-width: 480px;
+      width: 90%;
+      backdrop-filter: blur(20px);
+    }
+    .check-circle {
+      width: 84px; height: 84px;
+      background: rgba(16,185,129,0.15);
+      border: 2px solid rgba(16,185,129,0.4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 2.2rem;
+      color: var(--success);
+      animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @keyframes pop {
+      from { transform: scale(0); opacity:0; }
+      to   { transform: scale(1); opacity:1; }
+    }
+    .brand { font-family: var(--font-brand); font-size: 1.4rem; color: #3B82F6; margin-bottom: 24px; }
+    h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; }
+    p  { font-size: 0.95rem; color: #94A3B8; line-height: 1.6; margin-bottom: 32px; }
+    .plan-pill {
+      display: inline-block;
+      background: rgba(37,99,235,0.15);
+      border: 1px solid rgba(37,99,235,0.3);
+      color: #60A5FA;
+      padding: 6px 20px;
+      border-radius: 99px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--primary); color: white;
+      padding: 13px 28px; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 600;
+      font-family: var(--font-body); border: none; cursor: pointer;
+      transition: all 0.2s; box-shadow: 0 6px 24px rgba(37,99,235,0.4);
+      text-decoration: none;
+    }
+    .btn:hover { background: #3B82F6; transform: translateY(-1px); }
+    .confetti { position: fixed; inset: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+<canvas class="confetti" id="confetti"></canvas>
+<div class="box">
+  <div class="brand">TymKeeper</div>
+  <div class="check-circle"><i class="ri-checkbox-circle-fill"></i></div>
+  <h1>Payment Successful! 🎉</h1>
+  <div class="plan-pill" id="planPill">Plan activated</div>
+  <p>Your subscription is now active. All features for your plan are unlocked and ready to use. A confirmation has been sent to your email.</p>
+  <a href="admin.html" class="btn">
+    <i class="ri-dashboard-line"></i> Go to Dashboard
+  </a>
+</div>
+
+<script>
+// Read plan from URL params
+const params = new URLSearchParams(window.location.search);
+const plan  = params.get('plan') || 'growth';
+const cycle = params.get('cycle') || 'monthly';
+const names = { free:'Free Starter', growth:'Growth Plan', scale:'Scale Plan' };
+document.getElementById('planPill').textContent = `✅ ${names[plan] || plan} — ${cycle} billing`;
+
+// Simple confetti
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const pieces = Array.from({length:120}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * -canvas.height,
+  w: Math.random() * 10 + 6,
+  h: Math.random() * 6 + 4,
+  color: ['#2563EB','#10B981','#F59E0B','#8B5CF6','#EF4444','#0EA5E9'][Math.floor(Math.random()*6)],
+  speed: Math.random() * 3 + 1.5,
+  angle: Math.random() * 360,
+  spin: (Math.random() - 0.5) * 4,
+}));
+let running = true;
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pieces.forEach(p => {
+    p.y += p.speed; p.angle += p.spin;
+    if (p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle*Math.PI/180);
+    ctx.fillStyle = p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+  });
+  if (running) requestAnimationFrame(draw);
+}
+draw();
+setTimeout(() => { running = false; ctx.clearRect(0,0,canvas.width,canvas.height); }, 5000);
+</script>
+</body>
+</html>
